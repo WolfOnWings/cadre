@@ -16,14 +16,6 @@
         ]
       }
     ],
-    "SessionEnd": [
-      {
-        "matcher": "clear|resume|logout|prompt_input_exit|bypass_permissions_disabled|other",
-        "hooks": [
-          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "matcher": "*",
