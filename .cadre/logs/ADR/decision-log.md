@@ -67,6 +67,7 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 ### ADR-014: TODOS.md and HANDOFF.md live at `.cadre/`, gitignored
 *Decision:* `.cadre/todos.md` and `.cadre/handoff.md`. Whole `.cadre/` directory is gitignored for now.
 *Why:* Public-repo-flip exposed sensitive internal content; rescued by moving everything internal under `.cadre/` and ignoring it. Pattern narrows if some `.cadre/` content needs to be shared later.
+*SUPERSEDED BY:* ADR-064 (operational state un-gitignored 2026-04-26 — privacy concern reconsidered, lab-notebook category accepted as public).
 
 ### ADR-015: Repo is public on GitHub
 *Decision:* `github.com/WolfOnWings/cadre` is public.
@@ -95,6 +96,7 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 ### ADR-021: Worktrees per feature/task, sibling directory
 *Decision:* Each feature/task gets its own worktree at `cadre.worktrees/<branch>`, reused across sessions until the branch merges.
 *Why:* Bare-repo + sibling-worktrees layout is standard for AI-assisted pipelines. Coheres with merge = chapter arc.
+*SUPERSEDED BY:* ADR-065 (CC native worktree primitives 2026-04-26 — `claude --worktree <name>` creates worktrees at `.claude/worktrees/<name>/` inside the project; harness handles the lifecycle).
 
 ### ADR-022: git worktree prune at session end (automated)
 *Decision:* `git worktree prune` runs at session end automatically.
@@ -278,6 +280,37 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 *Decision:* Once Cadre's hook infrastructure is real (TS-on-Bun ready, hook events verified), the persist-to-`.cadre/plans/` move (currently a SOP step the orchestrator must remember) refactors into an automatic post-exit hook.
 *Why:* Orchestrator can't always be relied on to remember Step 9 (compaction, context drift). Hook gives deterministic guarantee.
 *STATUS:* DEFERRED, dependency on hook infrastructure (TODO #21).
+
+---
+
+## Architectural simplification session — 2026-04-26
+
+### ADR-063: Bidirectional sync "playbook" architecture rejected before merge (2026-04-26)
+*Decision:* The bidirectional auto-sync playbook architecture (committed as `1345135` on `feat/playbook-cadre`: `cadre/playbook.json` + worktree-init script + PostToolUse sync hook + settings.json wiring) is abandoned. Branch reset to `origin/main` and rewritten as a different architecture before any merge.
+*Why:* During plan-cadre re-planning, two facts collapsed the design: (1) Claude Code already ships native worktree primitives (`claude --worktree`, `.worktreeinclude`, `WorktreeCreate` hooks), making most of the custom infrastructure redundant; (2) merge-propagation requires tracking the files anyway, which dissolves the privacy-driven gitignore that motivated the playbook in the first place.
+*Implications:* ~140 lines of custom hook code deleted before merging. Reflog preserves the prior tip for 30 days if recovery ever needed.
+
+### ADR-064: Operational state is tracked (2026-04-26)
+*Decision:* `.cadre/` and `CLAUDE.md` are un-gitignored and tracked by git. Standard merge propagates edits across worktrees and main. Only `.env*` remains gitignored.
+*Why:* Simplest architecture meeting the user's intent (persistent edits, single canonical source). Privacy concern reconsidered — operational state (handoff, todos, ADR log, drafts, research, plans) is lab-notebook category, accepted as public on GitHub. One personal email redacted from the bootstrap plan as part of the pre-tracking scrub.
+*Implications:* No playbook concept, no init scripts, no doctrine for "write to main's path." Plain git workflow handles propagation.
+*SUPERSEDES:* ADR-014 (TODOS.md and HANDOFF.md gitignored).
+
+### ADR-065: Adopt Claude Code's native worktree primitives (2026-04-26)
+*Decision:* Worktrees are spawned via `claude --worktree <name>` (CC native; documented at `code.claude.com/docs/en/common-workflows.md#run-parallel-claude-code-sessions-with-git-worktrees`). Worktrees live at `.claude/worktrees/<name>/` (inside the project). The harness handles branch creation, file checkout, session launch, and cleanup.
+*Why:* CC ships first-class support. Adopting it eliminates the custom shell wrapper, the bare-repo-plus-sibling-worktrees pattern, and downstream cleanup work. Aligns with the user's "seamless one-command" intent.
+*Implications:* CLAUDE.md doctrine updated under "Git and review architecture." The harness branches from `origin/HEAD` by default; verifying a specific PR's content from a fresh worktree requires fast-forwarding the branch to the PR's head after creation (recipe noted in doctrine).
+*SUPERSEDES:* ADR-021 (worktrees at `cadre.worktrees/<branch>`).
+
+### ADR-066: Reddit-style `.claude/` restructure deferred to PR #2 (2026-04-26)
+*Decision:* The proposed Reddit-style `.claude/` restructure (`rules/`, `hooks/`, `commands/`, `agents/`, plus `*.local` convention for personal vs team config) is deferred. PR #4 ships only the load-bearing simplification.
+*Why:* Brooks reflection during plan-cadre identified the restructure as anticipatory polish, not load-bearing. Smaller PR with focused mission, easier to revert if needed.
+*Implications:* Captured as TODO #28. Triggers when felt-need warrants (folder rot, scaling pressure, specific guidance that wants its own home in `rules/`).
+
+### ADR-067: SCRATCH.md per-worktree scratchpad concept abandoned (2026-04-26)
+*Decision:* The proposed per-worktree gitignored SCRATCH.md (templated stub for branch-local thinking, surfaced via the alternative-design proposal during this session) is abandoned.
+*Why:* With operational state tracked and propagated via merge, branch-local thinking already has natural homes in commits and PR descriptions. SCRATCH.md was a workaround for the gitignored architecture — irrelevant once tracking landed.
+*Implications:* No file template needed; no gitignore line added.
 
 ---
 

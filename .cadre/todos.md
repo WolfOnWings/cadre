@@ -315,59 +315,19 @@ Each level sees only the level directly below it. CLAUDE.md is shared context at
 
 ---
 
+## 28. `.claude/` Reddit-style restructure (deferred from PR #4)
+
+Adopt the structured `.claude/` layout from the Reddit post: `CLAUDE.md` + `.claude/{rules, hooks, commands, skills, agents}/` plus `*.local` siblings for personal vs team config. CLAUDE.md becomes terser; specialized guidance migrates to `rules/`. Possible namespace cleanup: `cadre/references/` → `.cadre/references/` for one canonical namespace (or split into its own PR).
+
+**Surfaced 2026-04-26.** Original scope of PR #4 (the tracked-state refactor) included this work, but Brooks reflection during plan-cadre identified the restructure as anticipatory polish, not load-bearing. Split off into this TODO for separate handling when felt-need warrants — folder rot, scaling pressure, or specific guidance that wants its own home in `rules/`.
+
+**Open dependencies:** none. Buildable any time post-PR #4 (now merged).
+
+---
+
 ## 27. The Playbook — canonical-state mirroring across worktrees
 
-**Status: IN PROGRESS (2026-04-26).** Built on `feat/playbook-cadre`. Shipped artifacts:
-- `cadre/playbook.json` — config (CLAUDE.md, handoff, todos, ADR log)
-- `.claude/hooks/playbook-sync-cadre.ts` — PostToolUse auto-sync
-- `.claude/hooks/worktree-init-cadre.ts` — manual init script
-- `.claude/settings.json` — hook wired (matcher `Edit|Write|MultiEdit`)
-- CLAUDE.md doctrine entry under "Git and review architecture"
-
-Smoke-tested with synthetic payload (exit 0). Full live-fire test pending session restart in worktree (hook loads from settings.json at session start). Once verified, this entry collapses to **DONE**.
-
-**Original design follows for reference:**
-
-
-
-**Name:** the playbook. A named, configurable set of files that mirror from the main worktree into every active worktree.
-
-**Problem.** `.cadre/` and `CLAUDE.md` are gitignored to keep operational state out of the public repo. But that means fresh worktrees start blank, and edits in different worktrees would diverge silently if we let each one have its own copy. Surfaced 2026-04-26 the first time a worktree was created outside the bootstrap session.
-
-**Architecture: main is canonical, worktrees are read-only mirrors.**
-- All edits to playbook files go to **main's path** (orchestrator in a worktree writes to `<main>/.cadre/...` via absolute path).
-- Each worktree carries a snapshot of the playbook files at session start.
-- Edits to main propagate automatically to all worktrees via a hook.
-- Worktree-local copies are throwaway — disappear when the worktree is removed.
-
-**Config: `.cadre/playbook.json`**
-```json
-{
-  "files": [
-    "CLAUDE.md",
-    ".cadre/handoff.md",
-    ".cadre/todos.md",
-    ".cadre/logs/ADR/decision-log.md"
-  ]
-}
-```
-Single file lists what's in the playbook. Add/remove a doc by editing one line. Lives on main only (gitignored along with the rest of `.cadre/`).
-
-**Two pieces that consume the playbook:**
-
-1. **Worktree init script.** Standalone CLI invoked at worktree creation. Reads `.cadre/playbook.json` from main, copies each listed file into the new worktree, preserving subdirectory structure. Independent of hook infrastructure — buildable today.
-
-2. **Auto-refresh hook (PostToolUse on Edit/Write).** Runs after every Edit/Write tool call. Checks whether the written file is a playbook file in main's path; if yes, copies main's new contents to every active worktree (enumerated via `git worktree list`). TS-on-Bun per ADR-050. Buildable today — Claude Code session hooks are not blocked on TODO #21 (which is git pre-commit hooks).
-
-**Doctrine addition needed (in CLAUDE.md):**
-- New rule: "Orchestrator in a worktree treats local playbook files as **read-only context**. All edits to playbook files are written to main's absolute path. The auto-refresh hook ensures the worktree's copy stays current."
-- Surface main's absolute path in the doctrine so any orchestrator knows where to write.
-
-**Tradeoff flagged:** between the moment of edit and the hook firing, the worktree's local copy is briefly stale. For solo-dev cadence with PostToolUse hooks (millisecond turnaround), not material.
-
-**Self-consistency check:** writes from worktree → main's path → hook fires → propagates to all worktrees including the source worktree → local copy refreshes. Single canonical state, no merge-back step.
-
-**Open dependencies:** none for the init script. Auto-refresh hook depends on Cadre having a `.claude/hooks/` directory and TS-on-Bun runtime conventions settled (per `cadre/references/creating-hooks.md`) — already settled per ADR-050/051.
+**Status: DONE — superseded (2026-04-26).** Initial design (bidirectional sync hook + JSON config + worktree-init script) committed on `feat/playbook-cadre` (commit `1345135`) but never merged. Architecture pivoted via plan-cadre to **plain tracking** of `.cadre/` and `CLAUDE.md` (PR #4, merged as `8570e36`); CC native worktree primitives (`claude --worktree`) replace the custom shell wrapper. The "playbook" concept itself dissolves — there is no playbook in the new architecture. Full reasoning in `.cadre/plans/what-di-you-think-floofy-rose.md` and ADRs 063 / 064 / 065 / 067.
 
 ---
 

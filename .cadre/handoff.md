@@ -9,26 +9,58 @@ Active session log. Most-recent session lives here; prior session entries archiv
 
 ---
 
-## 2026-04-26 — Session in progress (restart marker)
+## 2026-04-26 — Architectural simplification: tracked operational state, CC native worktrees
 
-**Status:** Mid-session restart. Claude session was running from project root; couldn't natively switch to the new worktree because the harness resets cwd back to the primary working directory after every Bash call. User restarting Claude from inside the worktree to continue.
+### Narrative
 
-**Worktree:** `../cadre.worktrees/feat-handoff-mx-cadre-agent` on branch `feat/handoff-mx-cadre-agent`. Created off main (commit 0a7e8b3). Clean, no commits yet.
+Session opened with the small loose end from prior: start the handoff-mx-cadre agent (TODO #12). User immediately surfaced friction with the worktree workflow — the harness resets cwd to the primary working directory after every Bash call, which breaks the "stay in one Claude session and hop worktrees" mental model. Two felt gaps emerged from that single ergonomic complaint: (1) one-Claude-session-per-worktree is the only viable convention; (2) `.cadre/` was gitignored, so fresh worktrees started blank.
 
-**What we're about to do:** First real use of plan-cadre. Topic: design the **handoff-mx-cadre** agent (TODO #12 from prior session — handoff maintainer that automates what was done by hand at end of last session).
+The conversation pivoted into solving the gitignore-vs-worktree problem first. Initial design: a "playbook" — `cadre/playbook.json` listing operational-state files; a worktree-init script copying them in; a PostToolUse bidirectional sync hook keeping all worktrees + main byte-identical. Built and committed (commit `1345135`) on `feat/playbook-cadre`. Never merged.
 
-**Resume instructions for the post-restart session:**
-1. Confirm cwd is the worktree (`pwd` should show `cadre.worktrees/feat-handoff-mx-cadre-agent`).
-2. Invoke `/plan-cadre` with topic: "design the handoff-mx-cadre agent — automates handoff doc maintenance per TODO #12."
-3. Plan-cadre will run brainstorm → architect; persist to `.cadre/plans/<slug>.md` per Step 9.
-4. Then build the agent via creator-cadre (its first real use too).
+User then shared a Reddit post on `.claude/` structure scaling and asked to pivot scope to include `.claude/` restructure. Invoked `/plan-cadre` for a unified rework plan. The plan-cadre brainstorm exposed a sequence of progressively simpler approaches: the user's intent (`abandon canonical store, just keep in main + use worktreeinclude`) led to a sharp clarifying question — *"won't merging propagate the edits?"* — which surfaced the load-bearing fact: for `git merge` to propagate, files must be tracked. The privacy concern that drove the gitignore was reconsidered. Operational state isn't actually sensitive (lab-notebook category); it just felt private. User upgraded "track playbook subset" to "track everything in `.cadre/`" mid-conversation.
 
-**Carry-forward notes:**
-- This is plan-cadre's debut — actively watch for friction points to feed back as retro input.
-- Creator-cadre will be invoked for the build step — also its debut on a real agent.
-- Per ADR-046, agent gets a `mode:` declaration (subagent vs teammate). Handoff maintainer is fire-once at session-end → almost certainly **subagent** mode.
-- **Workflow gotcha #1 (cwd):** harness resets cwd to primary working directory after every Bash call — incompatible with "one Claude session, hop worktrees." Convention: one Claude session per worktree.
-- **Workflow gotcha #2 (`.cadre/` is gitignored):** entire operational state (`.cadre/`, `CLAUDE.md`) lives only in the main worktree. New worktrees start with zero context. For this restart, the prior session manually copied `.cadre/` and `CLAUDE.md` over. Real question: should worktrees symlink to main's `.cadre/`, should `.cadre/` be tracked, or should there be a sync mechanism? Worth raising with user post-restart — likely a TODO entry, possibly a small Cadre primitive (worktree-init script).
+Parallel discovery via claude-code-guide: **Claude Code already ships native worktree support.** `claude --worktree <name>` creates the worktree, copies gitignored files via `.worktreeinclude`, launches the session, auto-cleans on exit. `WorktreeCreate`/`WorktreeRemove` hooks are real harness events. Subagent worktree isolation via `isolation: worktree` frontmatter. The custom shell wrapper and PostToolUse sync hook we'd built were redundant with first-class harness features.
+
+The architecture collapsed dramatically. The full bidirectional sync + custom command + worktree-init script + JSON config + `.worktreeinclude` config + per-worktree SCRATCH.md all evaporated. What remained: un-gitignore `.cadre/` and `CLAUDE.md`, adopt CC native, update doctrine. The playbook concept survived for less than 24 hours.
+
+Brooks reflection identified five candidate shifts; the load-bearing one was scope split — ship the simplification (PR #1) separately from the anticipatory `.claude/` Reddit-style restructure (PR #2 deferred). The other four (branch rename, CC native verification, namespace cleanup, pre-tracking scrub) folded into PR #1 detail or were captured as future work.
+
+Execution: reset `feat/playbook-cadre` to `origin/main` (drops `1345135`); pre-tracking scrub (one personal email redacted from bootstrap plan; nothing else sensitive); un-gitignore `.cadre/` + `CLAUDE.md`; commit; CLAUDE.md doctrine update (Worktrees entry rewritten for CC native, "The playbook" entry replaced with "Operational state is tracked"); branch renamed to `refactor/track-operational-state`; pushed; PR #4 opened. Live-fire verification in a fresh worktree (handed off to a separate Claude instance) revealed one drift surprise — `claude --worktree` branches from `origin/HEAD`, not from a specified PR — but the architecture itself verified clean. PR #4 merged as `8570e36`.
+
+Workflow surprise worth carrying forward: the test plan I wrote conflated "spawn fresh work" with "verify a PR's content." Those are different flows. The verifying instance fast-forwarded its worktree to the PR head; the recipe is now in the doctrine.
+
+### Decisions this session (condensed — full entries in `.cadre/logs/ADR/decision-log.md`)
+
+Session decisions span ADR-063 through ADR-067:
+
+1. **ADR-063:** Bidirectional sync architecture rejected before merge.
+2. **ADR-064:** `.cadre/` and `CLAUDE.md` un-gitignored; tracked operational state replaces playbook concept. Supersedes ADR-014.
+3. **ADR-065:** Adopt CC native worktree primitives. Supersedes ADR-021.
+4. **ADR-066:** Reddit-style `.claude/` restructure deferred to PR #2 (TODO #28).
+5. **ADR-067:** SCRATCH.md concept abandoned.
+
+### Open threads / next-up
+
+**Active task board:** `.cadre/todos.md` now has 28 items. Completed this session: TODO #27 (the Playbook, marked DONE — pivoted to plain tracking). Added: TODO #28 (Reddit-style `.claude/` restructure, deferred).
+
+**Original target unaddressed:** TODO #12 (handoff-mx-cadre agent). The session opened with this as the goal but pivoted to architecture work. Now genuinely next-up — the workflow infrastructure is finally clean enough to build on.
+
+**Pending implementation:**
+- **TODO #12 — handoff-mx-cadre agent.** Now plausibly the simplest version of itself, since handoff is just a tracked file edited via standard tools.
+- **TODO #28 — `.claude/` Reddit-style restructure.** Anticipatory; trigger when felt rot warrants.
+- **TODO #61 (ADR-061) — researcher-cadre format migration** (skill → agent).
+
+**Pointers for next session:**
+- PR #4 merged (`8570e36`). Operational state is tracked. CC native worktree command (`claude --worktree <name>`) is the canonical spawn.
+- Plan that drove this session: `.cadre/plans/what-di-you-think-floofy-rose.md`.
+- Workflow surprise: `claude --worktree` branches from `origin/HEAD`, not from a specified PR. To verify a PR, fast-forward after creation. Doctrine now notes this.
+
+### Pointers
+
+- **Repo:** `github.com/WolfOnWings/cadre` (public). PRs through #4 merged.
+- **Tracked operational state:** `.cadre/` and `CLAUDE.md` now tracked. Standard git merge propagates edits.
+- **Plan:** `.cadre/plans/what-di-you-think-floofy-rose.md` (this session's planning artifact).
+- **Doctrine:** `CLAUDE.md` (now tracked). Updated this session: Worktrees entry (CC native), "Operational state is tracked" replaces "The playbook" entry.
 
 ---
 
