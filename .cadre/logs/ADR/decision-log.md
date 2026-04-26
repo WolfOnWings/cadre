@@ -317,6 +317,11 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 *Why:* Pre-shape the namespace so future primitives slot in cleanly without reorganizing churn. Anticipatory but cheap.
 *Out of scope:* Content migration from CLAUDE.md to `rules/` deferred — no specialized guidance feels crowded yet, so YAGNI. Namespace cleanup `cadre/references/` → `.cadre/references/` deferred — design references and operational state are different content categories that benefit from separate top-level dirs.
 
+### ADR-069: Branches are the default flow; worktrees for parallel sessions only (2026-04-26)
+*Decision:* Default workflow for changes is plain branch + PR (`git checkout -b <name>`, edit, commit, push, PR, merge). Worktrees are reserved for cases that require a parallel Claude session (verifying a PR while continuing other work, long background tasks, parallel feature development). CLAUDE.md "Worktrees" doctrine entry refined accordingly: leads with "Default flow: branch + PR," followed by "Worktrees: parallel Claude sessions" as the called-out exception.
+*Why:* The three-review gates (commit / push / merge) fire on git operations and have zero dependency on worktrees. Defaulting to worktrees implied complexity that wasn't load-bearing for the most common case (sequential single-session solo work). The earlier doctrine framing ("spawn via `claude --worktree`") was true but read as prescriptive when it should have been conditional.
+*Implications:* No supersession of ADR-065 — the worktree spawn mechanism (CC native, `.claude/worktrees/<name>/` location) is unchanged. This ADR refines the *when* without touching the *how*.
+
 ---
 
 *Append-only log. New ADRs added at the bottom, numbered sequentially. Supersession links bidirectional.*
