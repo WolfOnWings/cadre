@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-prime-cadre.ts" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
+        ]
+      }
+    ]
+  }
+}

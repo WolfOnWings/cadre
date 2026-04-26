@@ -105,6 +105,10 @@ Deliberate bad commit → `git reset --hard` → reflog recovery. Fire when ther
 
 ## 12. Build the handoff maintainer agent
 
+**Status: DONE (2026-04-26).** Shipped as `handoff-mx-cadre` — boundary-synthesizer architecture (ADR-072). Logger hook appends events to `.cadre/session-events.log` non-blocking; synthesizer subagent dispatched by SessionStart (matchers: `startup|resume|clear|compact`) and SessionEnd integrates events into a four-section entry (Narrative / Decisions / Active Items / Changes). One active entry at `.cadre/handoff.md`; prior entries archived to `.cadre/handoffs/<ISO-date>.md`. Surface hook (SessionStart Action 2) injects the active entry verbatim via `additionalContext`. Plan: `.cadre/plans/ok-let-s-finally-start-pure-dusk.md`. Files shipped: `.claude/agents/handoff-mx-cadre.md`, `.claude/hooks/handoff-mx-{logger,surface}-cadre.ts`, `.claude/settings.json`, `.gitignore` updates.
+
+Original contract (preserved as history):
+
 Runs fully autonomous in the background. Contract:
 - **Live mutation during session** — entry is updated continuously as in-session actions occur (not just at session end).
 - **Session-end stamp** — the live entry is sealed into the final record at session end.
@@ -359,3 +363,19 @@ CLAUDE.md is dense (multiple distinct content categories). Migrate the parts tha
 - TODO #29 — conventions must be documented first.
 - TODO #15 — engram revival (the `hooks/` destination for preresponse-class content).
 - TODO #28 (DONE, ADR-068) — closes the deferral named in its DONE note.
+
+---
+
+## 31. handoff-mx events-log filtering / sampling
+
+The handoff-mx logger (`.claude/hooks/handoff-mx-logger-cadre.ts`) appends to `.cadre/session-events.log` on every UserPromptSubmit / PostToolUse / Stop, with each field truncated at 4096 chars but no broader filter. Live-fire test surfaced an 88KB events log from a single test session (verbose tool inputs/outputs were the bulk of it). Synthesizer's first run took ~8 min against a 26KB existing handoff + this large events log.
+
+Possible refinements (none load-bearing yet):
+- Drop `tool_response` for read-heavy tools (Read, Glob, Grep) — they're recoverable via re-read; not narrative-load-bearing
+- Sample large tool calls (e.g., truncate at 512 chars instead of 4096) for synthesis input
+- Bypass logging for purely-introspective tool calls (a wc -l, an ls)
+- Time-bucket aggregation if synthesis is run more frequently
+
+Not blocking the v1 ship. Revisit if synthesis runtimes become a UX issue at steady state, or if events-log size grows unbounded between integrations.
+
+**Open dependencies:** none. Dependent on TODO #12 (DONE, ADR-072 / ADR-073) shipping in production use.
