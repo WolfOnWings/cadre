@@ -51,6 +51,7 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 ### ADR-010: No auto-merge
 *Decision:* Every merge is human-decided. Merge orchestrator produces a 10–20-line human dashboard.
 *Why:* Human is always the decision-maker. Orchestrator dashboard makes small merges trivially fast for the human without removing the gate.
+*SEE ALSO:* ADR-070 — auto-merge mechanics. ADR-070 refines the *operational mechanic* (orchestrator enables GitHub auto-merge after the human decides yes; gates fire; merge lands on green) without changing the *substance* of ADR-010 (human still decides every merge).
 
 ### ADR-011: Consensus/vote mechanism for merge review deferred
 *Decision:* Stage-2 (consensus) and stage-3 (vote) of merge review are deferred pending the user's agent-voting paper.
@@ -321,6 +322,12 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 *Decision:* Default workflow for changes is plain branch + PR (`git checkout -b <name>`, edit, commit, push, PR, merge). Worktrees are reserved for cases that require a parallel Claude session (verifying a PR while continuing other work, long background tasks, parallel feature development). CLAUDE.md "Worktrees" doctrine entry refined accordingly: leads with "Default flow: branch + PR," followed by "Worktrees: parallel Claude sessions" as the called-out exception.
 *Why:* The three-review gates (commit / push / merge) fire on git operations and have zero dependency on worktrees. Defaulting to worktrees implied complexity that wasn't load-bearing for the most common case (sequential single-session solo work). The earlier doctrine framing ("spawn via `claude --worktree`") was true but read as prescriptive when it should have been conditional.
 *Implications:* No supersession of ADR-065 — the worktree spawn mechanism (CC native, `.claude/worktrees/<name>/` location) is unchanged. This ADR refines the *when* without touching the *how*.
+
+### ADR-070: Auto-merge mechanics — human decides; orchestrator enables `gh pr merge --auto` (2026-04-26)
+*Decision:* The merge mechanic uses GitHub's auto-merge feature. Workflow: orchestrator opens PR → checks fire (CI, stranger swarm, risk-class detection — when those layers exist) → orchestrator synthesizes the human dashboard → **human decides yes/no on merging** → on yes, orchestrator runs `gh pr merge --auto` → gates complete (or already green) → GitHub auto-merges. On gate failure, the dashboard surfaces context for human re-decision; orchestrator does not retry without explicit human direction.
+*Why:* Reconciles ADR-010's "human decides every merge" with the directive that "checks fire and merge happens automatically once human decides yes." Human stays the decision-maker; mechanics automate after the decision. The orchestrator no longer runs direct `gh pr merge` commands post-decision — it enables auto-merge mode.
+*Implications:* Refines TODO #14's merge-review design — "No auto-merge" phrasing replaced with the auto-merge-mechanics flow. Today's PRs (#5, #6, #7, #8) used direct merges because no CI exists yet; once CI/swarm land, the canonical path is `--auto`. The dashboard's role shifts from "primary gate" to "context surface for the human's decision and for failure-case diagnostics."
+*CROSS-LINK:* ADR-010 (the substance — human decides — is unchanged; ADR-070 specifies the operational mechanic).
 
 ---
 
