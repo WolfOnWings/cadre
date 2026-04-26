@@ -329,6 +329,11 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 *Implications:* Refines TODO #14's merge-review design — "No auto-merge" phrasing replaced with the auto-merge-mechanics flow. Today's PRs (#5, #6, #7, #8) used direct merges because no CI exists yet; once CI/swarm land, the canonical path is `--auto`. The dashboard's role shifts from "primary gate" to "context surface for the human's decision and for failure-case diagnostics."
 *CROSS-LINK:* ADR-010 (the substance — human decides — is unchanged; ADR-070 specifies the operational mechanic).
 
+### ADR-071: Operational-metadata exception to branch+PR default (2026-04-26)
+*Decision:* Trivial mutations to `.cadre/todos.md`, `.cadre/handoff.md`, or the ADR log can land directly on main. Branch+PR remains the default for code, behavior, or doctrine changes (including this ADR itself).
+*Why:* Surfaced when a 27-line TODO addition (PR #9) got the full branch+PR ceremony — overkill for queueing future work. Operational-metadata edits don't carry the review value that justifies the branch+PR cost; the three-review gates exist to catch behavioral risk that isn't present in task-board / handoff / ADR appends.
+*Implications:* Refines ADR-069 (branches are the default) without superseding it — the default still holds for substantive changes. Doctrine changes themselves are not in scope of this exception, since they ARE behavioral (they shape future orchestrator behavior).
+
 ---
 
 *Append-only log. New ADRs added at the bottom, numbered sequentially. Supersession links bidirectional.*
