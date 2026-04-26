@@ -332,3 +332,30 @@ Each level sees only the level directly below it. CLAUDE.md is shared context at
 A hook on ExitPlanMode would be a cleaner architecture for the persistence — the orchestrator can't always be relied on to remember Step 9 (compaction, context drift). Once Cadre's hook infrastructure is real (TS-on-Bun ready, hook events verified), the persist-to-`.cadre/plans/` move could become an automatic post-exit hook rather than a step the orchestrator has to execute. For now, Step 9 covers it; refactor later.
 
 **Open dependencies:** TODO #21 (pre-commit framework + hooks install) for the underlying hook infrastructure. Verify ExitPlanMode (or equivalent post-plan-mode event) is a real harness hook event before scoping the refactor.
+
+---
+
+## 29. Document `.claude/rules/` and `.claude/commands/` conventions
+
+Cadre has reference docs for skills / agents / hooks (`cadre/references/creating-{skills,agents,hooks}.md`) but not for rules or commands. Required prerequisite for TODO #30 (CLAUDE.md content migration) — without documented conventions, the migration risks landing in the wrong format.
+
+**Research:** read live Claude Code docs on `.claude/rules/` and `.claude/commands/` — file format, frontmatter (if any), invocation patterns, examples. Use `claude-code-guide` for grounding.
+
+**Output:** `cadre/references/creating-rules.md` and `cadre/references/creating-commands.md`, matching the existing refs' shape — Cadre-specific patterns layered atop live CC documentation. Promote to north-star alongside `creation-techniques.md` (ADR-041) where appropriate.
+
+**Open dependencies:** none upstream. TODO #30 depends on this.
+
+---
+
+## 30. Break out CLAUDE.md into `.claude/` primitives
+
+CLAUDE.md is dense (multiple distinct content categories). Migrate the parts that belong elsewhere into the right primitive type under `.claude/{rules, commands, hooks, agents}/`, leaving CLAUDE.md as the load-bearing orientation layer. Closes the content-migration deferral named in TODO #28's DONE note (ADR-068).
+
+**Likely outcome (don't pre-decide the split — let it emerge during the walk):** intent / mental model / trust hierarchy / AskUserQuestion contract stay at root as orientation; workflow specifics, anti-patterns, and primitive-creation guidance migrate. Preresponse / engram-class items connect to TODO #15 (engram revival) and the `hooks/` destination.
+
+**Process:** walk CLAUDE.md section by section, decide stays vs. migrates per the conventions documented in TODO #29. Substance preserved; only location changes (no doctrine rewrite).
+
+**Open dependencies:**
+- TODO #29 — conventions must be documented first.
+- TODO #15 — engram revival (the `hooks/` destination for preresponse-class content).
+- TODO #28 (DONE, ADR-068) — closes the deferral named in its DONE note.
