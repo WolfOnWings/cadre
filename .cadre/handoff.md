@@ -29,38 +29,54 @@ Execution: reset `feat/playbook-cadre` to `origin/main` (drops `1345135`); pre-t
 
 Workflow surprise worth carrying forward: the test plan I wrote conflated "spawn fresh work" with "verify a PR's content." Those are different flows. The verifying instance fast-forwarded its worktree to the PR head; the recipe is now in the doctrine.
 
+### Subsequent same-day refinements (after PR #4 merged)
+
+After landing the load-bearing simplification (PR #4, `8570e36`), the day continued with four smaller PRs that closed gaps surfaced by dogfooding the new workflow:
+
+- **PR #5 — session housekeeping** (merged as `e524507`). Captured this session's narrative in handoff, marked TODO #27 DONE (Playbook → superseded), added TODO #28, captured ADRs 063–067, refined CLAUDE.md doctrine note that `claude --worktree` branches from `origin/HEAD` (gap surfaced by PR #4's verification).
+- **PR #6 — `.claude/` Reddit-style scaffold** (merged as `7b1166c`). Closed TODO #28: scaffolded `.claude/{rules, hooks, commands, agents}/` empty with `.gitkeep`; added `*.local.md` / `*.local.json` to `.gitignore`; CLAUDE.md doctrine entry "**`.claude/` directory shape**" added. Removed stale `.claude/references/`. Content migration from CLAUDE.md to `rules/` deferred (no crowding yet); namespace cleanup `cadre/references/` → `.cadre/references/` deferred (different content categories). ADR-068.
+- **PR #7 — branch-default doctrine refinement** (merged as `1b4b43b`). User caught that the new "Worktrees" doctrine read as "use worktrees for every change," which wasn't the intent. Refined to "Default flow: branch + PR" leading; "Worktrees: parallel Claude sessions" as the called-out exception. ADR-069 (no supersession of ADR-065 — the worktree spawn mechanism is unchanged; only the framing of *when* to reach for them).
+- **PR #8 — auto-merge mechanics** (this PR). Reconciled ADR-010 (no auto-merge; human decides) with the user's "checks fire and merge happens" workflow: human stays the decision-maker; orchestrator enables `gh pr merge --auto` once human says yes; gates fire; merge lands on green. ADR-070 captures the operational mechanic; ADR-010 unchanged in substance, cross-linked. TODO #14 updated (merge review flow + decision-maker note).
+
 ### Decisions this session (condensed — full entries in `.cadre/logs/ADR/decision-log.md`)
 
-Session decisions span ADR-063 through ADR-067:
+Session decisions span ADR-063 through ADR-070:
 
 1. **ADR-063:** Bidirectional sync architecture rejected before merge.
 2. **ADR-064:** `.cadre/` and `CLAUDE.md` un-gitignored; tracked operational state replaces playbook concept. Supersedes ADR-014.
 3. **ADR-065:** Adopt CC native worktree primitives. Supersedes ADR-021.
-4. **ADR-066:** Reddit-style `.claude/` restructure deferred to PR #2 (TODO #28).
+4. **ADR-066:** Reddit-style `.claude/` restructure deferred to PR #2 (originally TODO #28; closed in PR #6).
 5. **ADR-067:** SCRATCH.md concept abandoned.
+6. **ADR-068:** `.claude/` Reddit-style scaffolding adopted (TODO #28 closed via PR #6).
+7. **ADR-069:** Branches are the default flow; worktrees for parallel Claude sessions only.
+8. **ADR-070:** Auto-merge mechanics (`gh pr merge --auto` after human decides yes); cross-linked to ADR-010.
 
 ### Open threads / next-up
 
-**Active task board:** `.cadre/todos.md` now has 28 items. Completed this session: TODO #27 (the Playbook, marked DONE — pivoted to plain tracking). Added: TODO #28 (Reddit-style `.claude/` restructure, deferred).
+**Active task board:** `.cadre/todos.md` now has 28 items. Completed this session: TODO #27 (the Playbook, DONE — superseded by tracking) and TODO #28 (`.claude/` Reddit-style scaffold, DONE via PR #6).
 
-**Original target unaddressed:** TODO #12 (handoff-mx-cadre agent). The session opened with this as the goal but pivoted to architecture work. Now genuinely next-up — the workflow infrastructure is finally clean enough to build on.
+**Original target still unaddressed: TODO #12 (handoff-mx-cadre agent).** The session opened with this as the goal but pivoted to architecture work for the entire day. **Now genuinely next-up — and the user has signaled a fresh session will start with this work.** The workflow infrastructure is finally clean enough to build on. The agent will run autonomously to maintain `.cadre/handoff.md` (live mutation during session, session-end stamp, session-start surfacing, lifecycle/archive). Now plausibly the simplest version of itself since handoff is just a tracked file edited via standard tools.
 
 **Pending implementation:**
-- **TODO #12 — handoff-mx-cadre agent.** Now plausibly the simplest version of itself, since handoff is just a tracked file edited via standard tools.
-- **TODO #28 — `.claude/` Reddit-style restructure.** Anticipatory; trigger when felt rot warrants.
+- **TODO #12 — handoff-mx-cadre agent. NEXT (new session).** Now plausibly the simplest version of itself, since handoff is just a tracked file edited via standard tools.
 - **TODO #61 (ADR-061) — researcher-cadre format migration** (skill → agent).
+- **TODO #14 — three-review architecture detail.** Now incorporates auto-merge mechanics (ADR-070) once CI/swarm/risk-detection layers ship.
+- **TODO #22 — base CI workflow.** Required before auto-merge mechanics activate in practice.
 
-**Pointers for next session:**
-- PR #4 merged (`8570e36`). Operational state is tracked. CC native worktree command (`claude --worktree <name>`) is the canonical spawn.
-- Plan that drove this session: `.cadre/plans/what-di-you-think-floofy-rose.md`.
-- Workflow surprise: `claude --worktree` branches from `origin/HEAD`, not from a specified PR. To verify a PR, fast-forward after creation. Doctrine now notes this.
+**Pointers for next session (handoff-mx-cadre):**
+- Workflow infrastructure is clean: tracked operational state, branch + PR default, CC native worktrees for parallel sessions, auto-merge mechanics specified.
+- Five PRs landed today: #4 (architectural simplification), #5 (housekeeping), #6 (`.claude/` scaffold), #7 (branch-default doctrine), #8 (auto-merge mechanics).
+- Plan that drove the architectural pivot: `.cadre/plans/what-di-you-think-floofy-rose.md`.
+- Workflow surprise carrying forward: `claude --worktree` branches from `origin/HEAD`, not from a specified PR. To verify a PR's content, fast-forward the worktree's branch to the PR head after creation. Doctrine notes this.
+- Original handoff-maintainer contract (TODO #12): live mutation during session, session-end stamp, session-start surfacing, lifecycle/archive. User never has to prompt it. Per-commit narrative lives in commit messages, not handoff.
 
 ### Pointers
 
-- **Repo:** `github.com/WolfOnWings/cadre` (public). PRs through #4 merged.
+- **Repo:** `github.com/WolfOnWings/cadre` (public). PRs through #8 merged.
 - **Tracked operational state:** `.cadre/` and `CLAUDE.md` now tracked. Standard git merge propagates edits.
 - **Plan:** `.cadre/plans/what-di-you-think-floofy-rose.md` (this session's planning artifact).
-- **Doctrine:** `CLAUDE.md` (now tracked). Updated this session: Worktrees entry (CC native), "Operational state is tracked" replaces "The playbook" entry.
+- **Doctrine:** `CLAUDE.md`. Updated this session: Worktrees entry (CC native + branch-default framing), "Operational state is tracked" replaces "The playbook" entry, "`.claude/` directory shape" entry added.
+- **Decision log:** ADR-063 through ADR-070 captured this session.
 
 ---
 

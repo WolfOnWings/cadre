@@ -132,7 +132,7 @@ Decide: do they coexist? Is one a subset of the other? What's the unified shape?
 - **Human-facing merge dashboard** — distinct artifact, 10–20 lines (chapter summary / intent served / swarm verdict / risk flags / unresolved questions / human action line). Skimmable in 20–30s. Produced by the merge orchestrator from synthesis of CI, swarm, risk detection, PR description.
 - Gate hooks (pre-commit, pre-push, merge gate) that inject each agent-facing brief just-in-time.
 - Stranger-agent subagent (push review) and stranger-swarm (merge review) implementations.
-- **Merge orchestrator** is the main Claude session (not a separate agent) — synthesizes CI + swarm + risk flags + PR description → produces human dashboard. No auto-merge; human is always the decision-maker.
+- **Merge orchestrator** is the main Claude session (not a separate agent) — synthesizes CI + swarm + risk flags + PR description → produces human dashboard. **Human decides** (ADR-010); on yes, orchestrator enables `gh pr merge --auto` and gates fire (or merge lands immediately if checks already green) per ADR-070.
 - Risk-class detection: file-path / diff-size / AST pattern matchers for schema migrations, auth, payments, public API, etc. Outputs go to orchestrator as flags.
 
 **Architecture context (settled during the bootstrap walkthrough, carried forward):**
@@ -145,7 +145,7 @@ Decide: do they coexist? Is one a subset of the other? What's the unified shape?
 | Push review | pre-push hook | Page — coherent paragraph(s) | Cumulative lint / type / test over commit range | Push-review brief injected into pushing agent + 1 stranger agent adversarial pass | 2 (self + stranger) | Gate |
 | Merge review | CI + PR gate + orchestrator | Chapter — complete arc | Full CI suite + risk-class detection | Stranger swarm with distinct framings + merge orchestrator synthesizes all signals into the human dashboard | N (swarm) + orchestrator | Human, always |
 
-*Merge review flow:* CI runs → stranger swarm runs → L1 risk detection runs → merge orchestrator (main Claude session) synthesizes → human dashboard → human decides. No auto-merge. No bypass.
+*Merge review flow:* PR opens → CI runs (when present) → stranger swarm runs → L1 risk-class detection runs → merge orchestrator (main Claude session) synthesizes → human dashboard → human decides → on yes, orchestrator enables `gh pr merge --auto` → GitHub auto-merges on green (or surfaces failure context via dashboard). Human is always the decision-maker (ADR-010); auto-merge is the post-decision mechanic (ADR-070). No bypass.
 
 *Trust hierarchy:* L1/L2/L3 is orthogonal to reviewer count; each stage fuses L1 and L3, with L2 grounding inside the L3 briefs.
 
