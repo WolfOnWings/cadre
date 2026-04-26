@@ -312,6 +312,11 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 *Why:* With operational state tracked and propagated via merge, branch-local thinking already has natural homes in commits and PR descriptions. SCRATCH.md was a workaround for the gitignored architecture — irrelevant once tracking landed.
 *Implications:* No file template needed; no gitignore line added.
 
+### ADR-068: `.claude/` Reddit-style scaffolding adopted; content migration deferred (2026-04-26, TODO #28)
+*Decision:* Scaffold the structured `.claude/` layout from the broader CC community: `.claude/{rules, hooks, commands, skills, agents, worktrees}/`. Empty subdirs (`.gitkeep`); `skills/` and `worktrees/` already populated. Personal-config siblings split via `*.local.md` / `*.local.json` (added to `.gitignore`). CLAUDE.md gets a brief "**`.claude/` directory shape**" entry describing the layout. The stale `.claude/references/` directory (leftover from a prior session's move to `cadre/references/`) is removed.
+*Why:* Pre-shape the namespace so future primitives slot in cleanly without reorganizing churn. Anticipatory but cheap.
+*Out of scope:* Content migration from CLAUDE.md to `rules/` deferred — no specialized guidance feels crowded yet, so YAGNI. Namespace cleanup `cadre/references/` → `.cadre/references/` deferred — design references and operational state are different content categories that benefit from separate top-level dirs.
+
 ---
 
 *Append-only log. New ADRs added at the bottom, numbered sequentially. Supersession links bidirectional.*
