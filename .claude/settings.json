@@ -4,15 +4,8 @@
       {
         "matcher": "startup|resume|clear|compact",
         "hooks": [
-          {
-            "type": "agent",
-            "prompt": "Read `.claude/agents/handoff-mx-cadre.md` for your full contract (role identity, anti-patterns, 9-step SOP, file footprint). Execute its integration SOP against current state: detect any leftover `.cadre/session-events.log.processing-*` (crash recovery) or rename `.cadre/session-events.log` -> `.processing-<ts>` to consume; archive any prior entries in `.cadre/handoff.md` to `.cadre/handoffs/<entry-date>.md`; write the new four-section entry as sole content of `.cadre/handoff.md`; delete the `.processing-<ts>` file. Idempotent on empty log.",
-            "timeout": 120
-          },
-          {
-            "type": "command",
-            "command": "bun run .claude/hooks/handoff-mx-surface-cadre.ts"
-          }
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-synthesize-cadre.ts" },
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-surface-cadre.ts" }
         ]
       }
     ],
