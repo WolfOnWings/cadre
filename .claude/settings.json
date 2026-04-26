@@ -1,0 +1,56 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "Read `.claude/agents/handoff-mx-cadre.md` for your full contract (role identity, anti-patterns, 9-step SOP, file footprint). Execute its integration SOP against current state: detect any leftover `.cadre/session-events.log.processing-*` (crash recovery) or rename `.cadre/session-events.log` -> `.processing-<ts>` to consume; archive any prior entries in `.cadre/handoff.md` to `.cadre/handoffs/<entry-date>.md`; write the new four-section entry as sole content of `.cadre/handoff.md`; delete the `.processing-<ts>` file. Idempotent on empty log.",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "bun run .claude/hooks/handoff-mx-surface-cadre.ts"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "Read `.claude/agents/handoff-mx-cadre.md` for your full contract. Execute its integration SOP to drain any unintegrated events from `.cadre/session-events.log` (consume via rename to `.processing-<ts>`); archive prior entries from `.cadre/handoff.md` to `.cadre/handoffs/<entry-date>.md`; write a new four-section entry; delete the `.processing-<ts>` file. Idempotent on empty log.",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
+        ]
+      }
+    ]
+  }
+}

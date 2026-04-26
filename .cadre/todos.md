@@ -105,6 +105,10 @@ Deliberate bad commit → `git reset --hard` → reflog recovery. Fire when ther
 
 ## 12. Build the handoff maintainer agent
 
+**Status: DONE (2026-04-26).** Shipped as `handoff-mx-cadre` — boundary-synthesizer architecture (ADR-072). Logger hook appends events to `.cadre/session-events.log` non-blocking; synthesizer subagent dispatched by SessionStart (matchers: `startup|resume|clear|compact`) and SessionEnd integrates events into a four-section entry (Narrative / Decisions / Active Items / Changes). One active entry at `.cadre/handoff.md`; prior entries archived to `.cadre/handoffs/<ISO-date>.md`. Surface hook (SessionStart Action 2) injects the active entry verbatim via `additionalContext`. Plan: `.cadre/plans/ok-let-s-finally-start-pure-dusk.md`. Files shipped: `.claude/agents/handoff-mx-cadre.md`, `.claude/hooks/handoff-mx-{logger,surface}-cadre.ts`, `.claude/settings.json`, `.gitignore` updates.
+
+Original contract (preserved as history):
+
 Runs fully autonomous in the background. Contract:
 - **Live mutation during session** — entry is updated continuously as in-session actions occur (not just at session end).
 - **Session-end stamp** — the live entry is sealed into the final record at session end.
