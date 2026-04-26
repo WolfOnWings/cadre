@@ -3,6 +3,7 @@ name: handoff-mx-cadre
 description: Synthesizer subagent that compresses accumulated session events from `.cadre/session-events.log` into a four-section handoff entry in `.cadre/handoff.md`. Dispatched by the orchestrator (main Claude Code session) as its first action on session start; the priming instruction is auto-injected via the SessionStart hook `.claude/hooks/handoff-mx-prime-cadre.ts`. Events from a prior session integrate at the start of the next session. Idempotent on empty log. Do NOT use for per-commit narrative (commit messages own that), doctrine changes (CLAUDE.md / ADR log), or orchestrator-side handoff edits.
 tools: Read, Edit, Write, Bash, Glob, Grep
 model: inherit
+permissionMode: bypassPermissions
 ---
 
 **Mode:** subagent
