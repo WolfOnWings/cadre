@@ -21,8 +21,9 @@ function ensureDir(path: string) {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 }
 
-async function main() {
-  const ts = new Date().toISOString();
+const ts = new Date().toISOString();
+
+try {
   let additionalContext = "";
 
   if (existsSync(HANDOFF)) {
@@ -41,16 +42,14 @@ async function main() {
 
   console.log(JSON.stringify(out));
   process.exit(0);
-}
-
-main().catch((err) => {
+} catch (err) {
   try {
     ensureDir(HOOK_LOG);
-    appendFileSync(HOOK_LOG, `${new Date().toISOString()} ERROR ${err?.message ?? err}\n`);
+    appendFileSync(HOOK_LOG, `${ts} ERROR ${(err as Error)?.message ?? err}\n`);
   } catch {}
   // Empty additionalContext on error — graceful degrade
   console.log(JSON.stringify({
     hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: "" },
   }));
   process.exit(0);
-});
+}

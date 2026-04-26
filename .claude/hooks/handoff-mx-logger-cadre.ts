@@ -24,8 +24,11 @@ function ensureDir(path: string) {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 }
 
-async function main() {
-  const ts = new Date().toISOString();
+const ts = new Date().toISOString();
+
+// Top-level try/await — the alternative pattern (`async function main(); main().catch(...)`)
+// causes `Bun.stdin.json()` to hang silently in some Bun versions; this pattern is verified.
+try {
   const payload = await Bun.stdin.json();
   const event: string = payload.hook_event_name ?? "unknown";
 
@@ -65,16 +68,14 @@ async function main() {
   // Empty JSON output — pass-through; don't inject context, don't decide.
   console.log("{}");
   process.exit(0);
-}
-
-main().catch((err) => {
+} catch (err) {
   // Non-blocking: log error, exit 0. Never gate the harness.
   try {
     ensureDir(HOOK_LOG);
-    appendFileSync(HOOK_LOG, `${new Date().toISOString()} ERROR ${err?.message ?? err}\n`);
+    appendFileSync(HOOK_LOG, `${ts} ERROR ${(err as Error)?.message ?? err}\n`);
   } catch {
     // last-resort swallow — we cannot fail this script
   }
   console.log("{}");
   process.exit(0);
-});
+}
