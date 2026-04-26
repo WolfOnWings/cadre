@@ -212,4 +212,4 @@ Problems: mechanism without arc. Reader sees what tools fired, not what the conv
 
 **Handoff format:** Markdown four-section entry written as sole content of `.cadre/handoff.md`. Prior entries archived to `.cadre/handoffs/<ISO-date>.md`. Events log truncated.
 
-**Coordination:** Synchronous within hook dispatch (`"type": "agent"` blocks until completion). No mid-task communication with peers or orchestrator.
+**Coordination:** Dispatched by the orchestrator via the Agent tool as its first action on session start. Subagent runs in its own context window; the Agent tool returns asynchronously when the subagent completes (typically 30s–3min depending on input size; longer on first runs against large existing handoff.md). The orchestrator awaits completion before reading the synthesized `.cadre/handoff.md` and proceeding with the user's request. No mid-task peer communication.
