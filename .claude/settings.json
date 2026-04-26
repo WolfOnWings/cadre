@@ -18,13 +18,9 @@
     ],
     "SessionEnd": [
       {
-        "matcher": "*",
+        "matcher": "clear|resume|logout|prompt_input_exit|bypass_permissions_disabled|other",
         "hooks": [
-          {
-            "type": "agent",
-            "prompt": "Read `.claude/agents/handoff-mx-cadre.md` for your full contract. Execute its integration SOP to drain any unintegrated events from `.cadre/session-events.log` (consume via rename to `.processing-<ts>`); archive prior entries from `.cadre/handoff.md` to `.cadre/handoffs/<entry-date>.md`; write a new four-section entry; delete the `.processing-<ts>` file. Idempotent on empty log.",
-            "timeout": 120
-          }
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
         ]
       }
     ],

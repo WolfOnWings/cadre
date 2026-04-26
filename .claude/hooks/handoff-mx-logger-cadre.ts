@@ -54,6 +54,13 @@ try {
       // read full session prose if needed for narrative reconstruction.
       entry.transcript_path = payload.transcript_path ?? null;
       break;
+    case "SessionEnd":
+      // SessionEnd marker — integration runs at next SessionStart's synthesizer
+      // (SessionEnd hook type doesn't support `agent` per CC docs, so we record
+      // a marker here and let the next session integrate).
+      entry.reason = payload.reason ?? null;
+      entry.transcript_path = payload.transcript_path ?? null;
+      break;
     default:
       // Unknown event — capture what we have for diagnostics, don't crash.
       entry.raw_payload = trunc(payload);

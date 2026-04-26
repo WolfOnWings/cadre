@@ -1,6 +1,6 @@
 ---
 name: handoff-mx-cadre
-description: Synthesizer subagent that compresses accumulated session events from `.cadre/session-events.log` into a four-section handoff entry in `.cadre/handoff.md` at session boundaries. Use when SessionStart (startup/resume/clear/compact) or SessionEnd fires AND the events log has unintegrated entries. Idempotent on empty log. Do NOT use for per-commit narrative (commit messages own that), doctrine changes (CLAUDE.md / ADR log), or orchestrator-side handoff edits.
+description: Synthesizer subagent that compresses accumulated session events from `.cadre/session-events.log` into a four-section handoff entry in `.cadre/handoff.md` at session-start. Dispatched by the SessionStart hook (matchers `startup|resume|clear|compact`); SessionEnd does NOT dispatch (CC harness limitation — `agent` hook type unsupported there), so the events log may contain events from prior session(s) marked by SessionEnd entries. Idempotent on empty log. Do NOT use for per-commit narrative (commit messages own that), doctrine changes (CLAUDE.md / ADR log), or orchestrator-side handoff edits.
 tools: Read, Edit, Write, Bash, Glob, Grep
 model: inherit
 ---
@@ -201,8 +201,8 @@ Problems: mechanism without arc. Reader sees what tools fired, not what the conv
 ## Interaction Model
 
 **Receives from:**
-- Logger hook → events written to `.cadre/session-events.log` (input is the file, not a message)
-- SessionStart / SessionEnd hook → invocation trigger via inline prompt: "Read `.claude/agents/handoff-mx-cadre.md` for your contract; execute against current state."
+- Logger hook → events written to `.cadre/session-events.log` (input is the file, not a message); logger fires on UserPromptSubmit / PostToolUse / Stop / SessionEnd
+- SessionStart hook → invocation trigger via inline prompt: "Read `.claude/agents/handoff-mx-cadre.md` for your contract; execute against current state." SessionEnd does NOT dispatch this subagent — it's a logger-only fire (CC harness restriction: SessionEnd hook type supports only `command` and `mcp_tool`, not `agent`). Events from the prior session integrate at the next SessionStart.
 
 **Delivers to:**
 - Orchestrator (next session) → updated `.cadre/handoff.md` (read by surface hook at SessionStart)
