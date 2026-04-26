@@ -317,11 +317,7 @@ Each level sees only the level directly below it. CLAUDE.md is shared context at
 
 ## 28. `.claude/` Reddit-style restructure (deferred from PR #4)
 
-Adopt the structured `.claude/` layout from the Reddit post: `CLAUDE.md` + `.claude/{rules, hooks, commands, skills, agents}/` plus `*.local` siblings for personal vs team config. CLAUDE.md becomes terser; specialized guidance migrates to `rules/`. Possible namespace cleanup: `cadre/references/` → `.cadre/references/` for one canonical namespace (or split into its own PR).
-
-**Surfaced 2026-04-26.** Original scope of PR #4 (the tracked-state refactor) included this work, but Brooks reflection during plan-cadre identified the restructure as anticipatory polish, not load-bearing. Split off into this TODO for separate handling when felt-need warrants — folder rot, scaling pressure, or specific guidance that wants its own home in `rules/`.
-
-**Open dependencies:** none. Buildable any time post-PR #4 (now merged).
+**Status: DONE — scaffold-only (2026-04-26).** Empty `.claude/{rules, hooks, commands, agents}/` directories scaffolded with `.gitkeep`; `skills/` and `worktrees/` already existed. CLAUDE.md doctrine entry "**`.claude/` directory shape**" added under "Git and review architecture" describing the layout, the `*.local.md` / `*.local.json` personal-config convention (added to `.gitignore`), and the "shape without substance" stance — subdirs sit empty until real usage warrants a primitive. Stale empty `.claude/references/` (leftover from prior session's move to `cadre/references/`) removed. **Out of scope (deferred):** content migration from CLAUDE.md to `rules/` (no specialized guidance feels crowded yet); namespace cleanup `cadre/references/` → `.cadre/references/` (different category — design refs vs operational state — so leaving distinct). Both available as future work when felt-need surfaces. ADR-068.
 
 ---
 
