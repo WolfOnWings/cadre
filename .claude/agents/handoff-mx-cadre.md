@@ -1,6 +1,6 @@
 ---
 name: handoff-mx-cadre
-description: Synthesizer subagent that compresses accumulated session events from `.cadre/session-events.log` into a four-section handoff entry in `.cadre/handoff.md` at session-start. Dispatched by the SessionStart hook (matchers `startup|resume|clear|compact`) — this is the ONLY trigger; events from a prior session integrate at the start of the next session. Idempotent on empty log. Do NOT use for per-commit narrative (commit messages own that), doctrine changes (CLAUDE.md / ADR log), or orchestrator-side handoff edits.
+description: Synthesizer subagent that compresses accumulated session events from `.cadre/session-events.log` into a four-section handoff entry in `.cadre/handoff.md`. Dispatched by the orchestrator (main Claude Code session) as its first action on session start; the priming instruction is auto-injected via the SessionStart hook `.claude/hooks/handoff-mx-prime-cadre.ts`. Events from a prior session integrate at the start of the next session. Idempotent on empty log. Do NOT use for per-commit narrative (commit messages own that), doctrine changes (CLAUDE.md / ADR log), or orchestrator-side handoff edits.
 tools: Read, Edit, Write, Bash, Glob, Grep
 model: inherit
 ---
@@ -202,7 +202,7 @@ Problems: mechanism without arc. Reader sees what tools fired, not what the conv
 
 **Receives from:**
 - Logger hook → events written to `.cadre/session-events.log` (input is the file, not a message); logger fires on UserPromptSubmit / PostToolUse / Stop during the session
-- SessionStart hook → invocation trigger via inline prompt: "Read `.claude/agents/handoff-mx-cadre.md` for your contract; execute against current state." SessionStart is the ONLY dispatch trigger — events from a session integrate at the start of the NEXT session (not at the end of the current one).
+- Orchestrator (main Claude Code session) → invocation via Agent tool dispatch as the orchestrator's first action on session start. The SessionStart hook `handoff-mx-prime-cadre.ts` injects the priming instruction via `additionalContext` so the orchestrator knows to dispatch on first turn. Events from a session integrate at the start of the NEXT session (not at the end of the current one).
 
 **Delivers to:**
 - Orchestrator (next session) → updated `.cadre/handoff.md` (read by surface hook at SessionStart)

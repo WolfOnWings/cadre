@@ -4,8 +4,7 @@
       {
         "matcher": "startup|resume|clear|compact",
         "hooks": [
-          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-synthesize-cadre.ts" },
-          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-surface-cadre.ts" }
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-prime-cadre.ts" }
         ]
       }
     ],
