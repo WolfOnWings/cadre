@@ -5,3 +5,9 @@
 # handoff-mx-cadre operational state (transient; consumed by synthesizer)
 .cadre/session-events.log
 .cadre/session-events.log.processing-*
+
+# Hook operational logs (transient; per-session debug output)
+.cadre/logs/hooks/*.log
+
+# Git worktrees (CC manages worktree contents natively; not source)
+.claude/worktrees/
