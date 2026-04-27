@@ -5,5 +5,12 @@
 # handoff-mx-cadre operational state (events stream + per-hook debug; all transient)
 .cadre/logs/handoff-mx/
 
+# task-mx-cadre operational state (per-hook debug + flag files; all transient)
+.cadre/task-mx/logs/
+
+# Stale log artifacts from earlier hook iterations (transient debug; not source).
+.cadre/logs/hooks/
+.cadre/session-events.log
+
 # Git worktrees (CC manages worktree contents natively; not source)
 .claude/worktrees/
