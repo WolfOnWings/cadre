@@ -88,7 +88,10 @@ interface ScoredEntry extends Entry {
 
 // ---------- YAML frontmatter parsing (minimal, hand-rolled) ----------
 
-const FRONTMATTER_RE = /^---\s*\n([\s\S]*?)\n---\s*(?:\n|$)/;
+// Matches a YAML frontmatter block anywhere in the input. Multiline mode so `^` finds
+// "---" at the start of any line (not just the file start), supporting per-entry blocks
+// within the Detail section. Captures group 1 = YAML body between the fences.
+const FRONTMATTER_RE = /^---\s*\n([\s\S]*?)\n---\s*(?:\n|$)/m;
 
 function parseYaml(block: string): Record<string, unknown> {
   const out: Record<string, unknown> = {};
