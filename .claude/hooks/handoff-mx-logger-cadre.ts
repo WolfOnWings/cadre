@@ -2,16 +2,19 @@
 // Cadre hook: handoff-mx-logger-cadre
 // Triggers on: UserPromptSubmit, PostToolUse, Stop (registered in .claude/settings.json)
 // Side effects:
-//   - appends one newline-delimited JSON line to `.cadre/session-events.log`
-//   - appends operational status to `.cadre/logs/hooks/handoff-mx-logger.log`
+//   - appends one newline-delimited JSON line to `.cadre/logs/handoff-mx/events.log`
+//   - appends to `.cadre/logs/handoff-mx/logger.log` ONLY on error (success path is silent)
 // Failure mode: non-blocking — exit 0 on append AND on any error (log to operational log; never gate harness).
 
 import { appendFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 
-const EVENTS_LOG = ".cadre/session-events.log";
-const HOOK_LOG = ".cadre/logs/hooks/handoff-mx-logger.log";
+const EVENTS_LOG = ".cadre/logs/handoff-mx/events.log";
+const HOOK_LOG = ".cadre/logs/handoff-mx/logger.log";
 const TRUNCATE_AT = 4096; // chars; cap on individual fields to bound entry size
+// Tools whose tool_response is recoverable from re-reading and not narrative-load-bearing.
+// Skipping them cuts events-log bloat (TODO #31).
+const RECOVERABLE_TOOLS = new Set(["Read", "Glob", "Grep"]);
 
 function trunc(s: unknown, n = TRUNCATE_AT): string {
   if (s == null) return "";
@@ -45,9 +48,12 @@ try {
       entry.prompt = trunc(payload.prompt);
       break;
     case "PostToolUse":
-      entry.tool = payload.tool_name ?? null;
+      const toolName = payload.tool_name ?? null;
+      entry.tool = toolName;
       entry.tool_input = trunc(payload.tool_input);
-      entry.tool_response = trunc(payload.tool_response);
+      if (!RECOVERABLE_TOOLS.has(toolName)) {
+        entry.tool_response = trunc(payload.tool_response);
+      }
       break;
     case "Stop":
       // Stop is a turn-boundary marker. transcript_path lets the synthesizer
@@ -69,8 +75,7 @@ try {
   ensureDir(EVENTS_LOG);
   appendFileSync(EVENTS_LOG, JSON.stringify(entry) + "\n");
 
-  ensureDir(HOOK_LOG);
-  appendFileSync(HOOK_LOG, `${ts} [${event}] logged\n`);
+  // logger.log is error-only — success path stays silent. Catch block below logs failures.
 
   // Empty JSON output — pass-through; don't inject context, don't decide.
   console.log("{}");
