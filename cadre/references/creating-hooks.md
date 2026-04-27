@@ -35,7 +35,7 @@ Hook scripts should be:
 - Minimal — do one thing
 - Fast — hooks block the harness; slow hooks degrade the experience
 - Idempotent where possible — replays should be safe
-- Logged — write to a known location (`.cadre/logs/hooks/<name>.log`) for debuggability
+- Logged — write to a known location (`.cadre/logs/<system>/<name>.log`, where `<system>` groups all artifacts of a related primitive — events streams, debug, etc.) for debuggability
 - Non-blocking on failure UNLESS the hook is meant as a gate
 
 Script header convention (TypeScript-on-Bun default):

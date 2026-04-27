@@ -2,15 +2,15 @@
 // Cadre hook: handoff-mx-logger-cadre
 // Triggers on: UserPromptSubmit, PostToolUse, Stop (registered in .claude/settings.json)
 // Side effects:
-//   - appends one newline-delimited JSON line to `.cadre/session-events.log`
-//   - appends operational status to `.cadre/logs/hooks/handoff-mx-logger.log`
+//   - appends one newline-delimited JSON line to `.cadre/logs/handoff-mx/events.log`
+//   - appends operational status to `.cadre/logs/handoff-mx/logger.log`
 // Failure mode: non-blocking — exit 0 on append AND on any error (log to operational log; never gate harness).
 
 import { appendFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 
-const EVENTS_LOG = ".cadre/session-events.log";
-const HOOK_LOG = ".cadre/logs/hooks/handoff-mx-logger.log";
+const EVENTS_LOG = ".cadre/logs/handoff-mx/events.log";
+const HOOK_LOG = ".cadre/logs/handoff-mx/logger.log";
 const TRUNCATE_AT = 4096; // chars; cap on individual fields to bound entry size
 
 function trunc(s: unknown, n = TRUNCATE_AT): string {
