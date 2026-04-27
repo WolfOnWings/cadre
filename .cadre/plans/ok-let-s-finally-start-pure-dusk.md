@@ -109,7 +109,7 @@ hooks.<EventName>[].hooks[].type   command | agent | prompt | http | mcp_tool
 hooks.<EventName>[].hooks[].command  shell command or path
 ```
 
-**Cadre conventions (from `cadre/references/creating-hooks.md`):**
+**Cadre conventions (from `.cadre/references/creating-hooks.md`):**
 - TS-on-Bun default for non-trivial scripts (Bun ships with CC; ~5-15ms cold start; type safety; cross-platform).
 - Naming: concise, glanceable.
 - Script header: shebang + Cadre comment block (name / triggers / side effects / failure mode).

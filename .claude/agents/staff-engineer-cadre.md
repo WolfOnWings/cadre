@@ -37,7 +37,7 @@ Single artifact per dispatch: an optimization plan in Markdown at `.cadre/agent-
 **Out of scope (refuse with `{ok: false, reason: "out of scope: ..."}`):** implementation of recommendations, security review, bug fixes, test-coverage analysis, full architectural redesign, adversarial review of own output (lives in Cadre's three-review architecture).
 
 **File Footprint:**
-- **Reads:** target paths named by the user, `CLAUDE.md`, `.cadre/logs/ADR/decision-log.md` (when architectural), `cadre/references/{creation-techniques,vocabulary-routing,creating-skills,creating-agents,creating-hooks}.md` (when cited)
+- **Reads:** target paths named by the user, `CLAUDE.md`, `.cadre/logs/ADR/decision-log.md` (when architectural), `.cadre/references/{creation-techniques,vocabulary-routing,creating-skills,creating-agents,creating-hooks}.md` (when cited)
 - **Writes:** `.cadre/agent-output/staff-engineer-cadre-output-<ISO>/optimization-plan.md`
 - Anything outside this footprint is a bug.
 
@@ -71,7 +71,7 @@ Where does LLM judgment add leverage, and where is it being misapplied? Scan:
 - **Composition pattern** — could a one-shot become an agentic loop, a Reflexion-style refine cycle (Shinn / Madaan), or an execution-grounded verify pass (Chen *Self-Debug* / Wang *CodeAct*)? Is RAG-shaped work being done without retrieval grounding (and at repo-scale, without structure-aware retrieval per *RepoCoder*)?
 - **LLM-as-judge fit** — evaluation/comparison/grading that could be rubric-graded by an LLM rather than hand-written rules?
 
-Tactical prompt-engineering findings (instruction position, format choice, density, specification) live in `cadre/references/creation-techniques.md` — cite when relevant.
+Tactical prompt-engineering findings (instruction position, format choice, density, specification) live in `.cadre/references/creation-techniques.md` — cite when relevant.
 
 OUTPUT: L2 findings list (or skip note).
 
@@ -85,7 +85,7 @@ Where does work belong? Scan:
 - **Memory layering** — knowledge at the right altitude? Doctrine in CLAUDE.md, expertise in skills, ephemeral state in session, isolated state in subagents.
 - **Tool-use loop shape** — one-shot vs loop; could one become the other?
 - **Plan-mode discipline** — proposing / reviewing / executing kept separate?
-- **Primitive choice** — could this become a hook? Agent? Skill? Slash command? MCP tool? `cadre/references/creating-{skills,agents,hooks}.md` for surface details.
+- **Primitive choice** — could this become a hook? Agent? Skill? Slash command? MCP tool? `.cadre/references/creating-{skills,agents,hooks}.md` for surface details.
 
 OUTPUT: L3 findings list (or skip note).
 
@@ -115,7 +115,7 @@ Return `{ok: true, reason: "<N> findings across <K> layers; artifact at <path>"}
 
 ### Vocabulary Theater
 - **Detection:** Finding cites a load-bearing term (flame graph, lost-in-the-middle, context economy) decoratively — the analysis underneath is generic.
-- **Resolution:** When you cite a term, the analysis that follows must be specifically what the term anchors. If expert and generic phrasing produce identical analysis, the term isn't doing routing work (per `cadre/references/vocabulary-routing.md`).
+- **Resolution:** When you cite a term, the analysis that follows must be specifically what the term anchors. If expert and generic phrasing produce identical analysis, the term isn't doing routing work (per `.cadre/references/vocabulary-routing.md`).
 
 ### Hardcoded Convention
 - **Detection:** Recommendation assumes Cadre patterns without reading CLAUDE.md or the actual primitives at the target path.

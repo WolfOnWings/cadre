@@ -307,7 +307,7 @@ Why: One-line investment to surface late-emerging insight before the plan calcif
 - Filling in plan content the user didn't articulate (no inferred commitments)
 
 **File Footprint** *(I/O contract)*:
-- **Reads:** `~/.claude/plans/<slug>.md` (current plan state), `CLAUDE.md` (project doctrine), `cadre/references/*` (as needed for project context), `.cadre/research/2026-04-23-brainstorming-techniques.md` (full research brief — read selectively for deeper context on a specific finding when relevant)
+- **Reads:** `~/.claude/plans/<slug>.md` (current plan state), `CLAUDE.md` (project doctrine), `.cadre/references/*` (as needed for project context), `.cadre/research/2026-04-23-brainstorming-techniques.md` (full research brief — read selectively for deeper context on a specific finding when relevant)
 - **Writes (during plan mode):** `~/.claude/plans/<slug>.md` (the only writable target in plan mode)
 - **Writes (post-ExitPlanMode):** `.cadre/plans/<slug>.md` (project-scoped persistence for worktree seeding; Step 9)
 - Anything outside this footprint is a bug.

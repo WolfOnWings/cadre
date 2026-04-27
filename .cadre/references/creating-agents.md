@@ -49,7 +49,7 @@ Choose a skill instead when the work needs to happen in the orchestrator's conte
 - **Naming:** `<name>-cadre` suffix per project naming convention. Disambiguates from harness-native subagents (general-purpose, Explore, Plan, etc.).
 - **Path:** `.claude/agents/<name>-cadre.md` (single flat file).
 - **Mode declaration:** declare `mode: subagent` or `mode: teammate` in frontmatter (or in a top-of-body marker if frontmatter doesn't support custom fields — verify against live docs).
-- **References:** since subdirs aren't supported, reference material either inlines into the agent body OR lives in a sibling location (e.g., `cadre/references/`) that the agent reads at runtime. Both are valid; tradeoff is token-cost-upfront vs runtime-Read-overhead.
+- **References:** since subdirs aren't supported, reference material either inlines into the agent body OR lives in a sibling location (e.g., `.cadre/references/`) that the agent reads at runtime. Both are valid; tradeoff is token-cost-upfront vs runtime-Read-overhead.
 - **I/O:** declare what the agent reads, what it writes (file footprint), what it produces (output artifact), what it accepts (input schema in dispatch prompt). Per CLAUDE.md doctrine.
 - **Dispatch-clean (subagent mode):** subagent prompts seed the entire context. Avoid named authors/works/frameworks unless the agent should specifically attend to them — seeded context can poison the search space (see CLAUDE.md doctrine; bootstrap session empirical demo).
 - **Team-context-aware (teammate mode):** declare which other agents the teammate expects in its team and what messages it sends/receives. Without this, teammate-mode dispatch drifts.

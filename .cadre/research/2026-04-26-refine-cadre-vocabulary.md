@@ -9,10 +9,10 @@
 ## 1. Methodology
 
 **Sources consulted:**
-- `cadre/references/vocabulary-routing.md` — load-bearing rules, the 15-year test, banned consultant-speak list.
-- `cadre/references/persona-science.md` — PRISM findings, alignment-accuracy tradeoff, attribution-amplifies-routing.
-- `cadre/references/creation-techniques.md` — for Layer 2 anchoring (Liu et al., Sclar et al., Lee et al. Format Tax, Baxi CDCT, Jaroslawicz IFScale, Chen DETAIL, Chroma context-length, Veseli primacy/recency).
-- `cadre/references/creating-{skills,agents,hooks}.md` — for Layer 3 anchoring on Cadre's own framing of harness primitives.
+- `.cadre/references/vocabulary-routing.md` — load-bearing rules, the 15-year test, banned consultant-speak list.
+- `.cadre/references/persona-science.md` — PRISM findings, alignment-accuracy tradeoff, attribution-amplifies-routing.
+- `.cadre/references/creation-techniques.md` — for Layer 2 anchoring (Liu et al., Sclar et al., Lee et al. Format Tax, Baxi CDCT, Jaroslawicz IFScale, Chen DETAIL, Chroma context-length, Veseli primacy/recency).
+- `.cadre/references/creating-{skills,agents,hooks}.md` — for Layer 3 anchoring on Cadre's own framing of harness primitives.
 - Live docs at `code.claude.com/docs/en/hooks` and `code.claude.com/docs/en/skills` — verified canonical surface names for hook events (PreToolUse, SessionStart, SubagentStop, etc.) and skill frontmatter fields (`disable-model-invocation`, `context: fork`, `allowed-tools`, `paths`).
 - Existing Cadre skills (`creator-cadre`, `plan-cadre`) for in-house vocabulary patterns and clustering style.
 - Parametric memory for canonical author-attribution pairs in performance engineering and interaction design (Knuth, Gregg, Nygard, Norman, Tognazzini, Krug, Cooper, Saffer, Wroblewski).
@@ -381,7 +381,7 @@ Current sub-cluster: `arithmetic, exact recall, true novelty (Dziri)`. SWE-speci
 
 **Ruled out:**
 - ML-research lit on training-side performance (FlashAttention, MoE routing) — wrong domain for a generalist "is your code slow" cluster; the inference-serving side (PagedAttention) is closer and surfaced as OPTIONAL only.
-- Algorithm-canon big-O / CLRS terms — `cadre/references/vocabulary-routing.md` already catalogs "horizontal scaling, sharding strategy" at the cluster level; algorithm-canon vocabulary routes to interview-prep clusters, not perf-engineering clusters. Recommendation deferred to §7.
+- Algorithm-canon big-O / CLRS terms — `.cadre/references/vocabulary-routing.md` already catalogs "horizontal scaling, sharding strategy" at the cluster level; algorithm-canon vocabulary routes to interview-prep clusters, not perf-engineering clusters. Recommendation deferred to §7.
 - Niche kernel-tuning vocabulary (NUMA balancing, transparent hugepages, page coloring) — passes 15-year test for kernel engineers, fails it for the generalist tier `refine-cadre` targets.
 - Web-frontend perf canon (Core Web Vitals, LCP/INP/CLS) — strong canon but domain-mismatched for a CLI agent harness; flagged in §5 as elevatable if the skill ever targets web stacks.
 
@@ -440,7 +440,7 @@ That's 9 terms — one above the 3-8 cluster guideline. Two ways to land: (a) dr
 | **Performance budget (Lighthouse / Core Web Vitals)** | OPTIONAL — domain-specific | Frontend-canon. If `refine-cadre` ever targets web stacks, elevate; for now, `Little's law` and the budget-as-gate idea generalize without the web-specific term. |
 | **Observability "fourth pillar" (profile alongside metric / trace / log)** | OPTIONAL | Genuinely new framing (Majors et al., 2022; OpenTelemetry Profiling SIG, 2024–). Conceptually subsumed by USE + flame graph already in cluster. |
 
-**Net modernization recommendation:** the proposed additions (USE, Little's law, tail at scale, mechanical sympathy) cover the missing classical canon. Post-2020 additions are real but better held in `cadre/references/` until a target stack demands them — keeps L1 generalist.
+**Net modernization recommendation:** the proposed additions (USE, Little's law, tail at scale, mechanical sympathy) cover the missing classical canon. Post-2020 additions are real but better held in `.cadre/references/` until a target stack demands them — keeps L1 generalist.
 
 ### 6. Confidence calibration
 
@@ -520,7 +520,7 @@ Current L4: affordance/signifier (Norman), anticipation (Tognazzini), microinter
 | 3 | **microcopy (Yifrah, 2017)** | Yifrah, *Microcopy: The Complete Guide* 2nd ed. 2017 | Names the *unit* of L4 polish for non-visual surfaces — error messages, empty states, button labels, success confirmations. Substrate-perfect for CLIs and agent harnesses where visual polish is irrelevant but text microcopy is the entire surface. Prior brief flagged the gap; this closes it. | Microcopy / UX-writing canon. Activates voice & tone, error-message structure (what / why / how-to-fix), empty-state writing — none of which the current cluster reaches. | **ADD** — high confidence. Strongest substrate fit of any candidate. |
 | 4 | **Nielsen response-time limits (0.1s / 1s / 10s)** | Nielsen, NN/g 1993 (drawing on Miller, *Response time in man-computer conversational transactions*, AFIPS 1968) | Names the latency-perception thresholds that govern agent-loop UX — when does a tool call need a progress indicator? When does silence kill flow? Direct routing for "this agent waits 8s with no feedback — broken at the 1s threshold." | Latency / feedback timing. Currently absent — `microinteraction` covers feedback grain but not the timing rules. | **ADD** — high confidence. Cheap to add (one line, three numbers, citation). |
 
-**Optional 5th** (lean: skip unless `refine-cadre` outputs frequently target CLI surfaces specifically): **clig.dev / human-first CLI** as a substrate-specific anchor for command-line refine work. Reason to skip: substrate-specific; if the skill targets a CLI it can pull this from `cadre/references/`. Tag: **OPTIONAL**.
+**Optional 5th** (lean: skip unless `refine-cadre` outputs frequently target CLI surfaces specifically): **clig.dev / human-first CLI** as a substrate-specific anchor for command-line refine work. Reason to skip: substrate-specific; if the skill targets a CLI it can pull this from `.cadre/references/`. Tag: **OPTIONAL**.
 
 **Trim consideration:** if budget pressure forces dropping one of the original 6 to land at 6 total, the weakest substrate-fit is **don't-make-me-think (Krug)** — Krug's canon is consumer-web-explicit. Krug's principle survives implicitly inside `Amershi G1` ("make clear what the system can do") and `signifier` (Norman). Lean: keep Krug — the slogan does load-bearing routing for "is this self-evident" gut-checks even on CLIs — but flag as the first cut if forced.
 
@@ -536,7 +536,7 @@ The substrate question is real. For Cadre — agent harness, dev tools, CLIs —
 
 **Held in references, not vocabulary:**
 
-- **Trust calibration (Lee & See 2004)** — strong canon, but the term is *implicit* in Amershi G2 ("make clear how well the system can do what it can do") and G11 ("convey why"). Adding it separately risks double-routing. Keep in `cadre/references/` for when refine outputs need to reason about reliance specifically.
+- **Trust calibration (Lee & See 2004)** — strong canon, but the term is *implicit* in Amershi G2 ("make clear how well the system can do what it can do") and G11 ("convey why"). Adding it separately risks double-routing. Keep in `.cadre/references/` for when refine outputs need to reason about reliance specifically.
 - **Contrastive explanation (Miller 2019)** — even more specialized; XAI-specific. Same argument: surfaces inside the Amershi guidelines' "convey why" cluster. Hold for now.
 - **Conversational repair (Ashktorab CHI 2019)** — relevant when the skill targets dialogue-style agents specifically. Subsumed by Amershi G9 ("support efficient correction") for the general case.
 - **Generative-AI design principles (Weisz et al. IBM CHI 2024; Springer 2025 11 guidelines)** — too fresh for the 15-year test; the umbrella terms (`Design for Imperfection`, `Design for Co-Creation`) haven't settled into senior-practitioner unprompted vocabulary yet. Revisit in 2027.

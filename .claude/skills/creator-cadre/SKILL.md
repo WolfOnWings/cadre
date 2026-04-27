@@ -12,7 +12,7 @@ description: |
 
 This skill primes the orchestrator to produce Cadre primitives — skills, agents (subagent or teammate mode), or hooks — following the project's design science, conventions, and I/O discipline. It assumes the orchestrator has access to project context (CLAUDE.md, existing `.claude/` primitives, `.cadre/` operational state) and can interactively ask the user for missing details during the build.
 
-The reference material lives in `cadre/references/`. Read references on demand per the SOP below; the body of this skill is intentionally lean to preserve attention budget.
+The reference material lives in `.cadre/references/`. Read references on demand per the SOP below; the body of this skill is intentionally lean to preserve attention budget.
 
 ---
 
@@ -115,9 +115,9 @@ OUTPUT: A complete, user-confirmed and collaborated spec.
 ### Step 2: Confirm primitive type and read type-specific patterns
 
 Validate the primitive-type choice against the criteria. Read the relevant Cadre patterns reference for the chosen type:
-- Skill: `Read('cadre/references/creating-skills.md')`
-- Agent: `Read('cadre/references/creating-agents.md')`
-- Hook: `Read('cadre/references/creating-hooks.md')`
+- Skill: `Read('.cadre/references/creating-skills.md')`
+- Agent: `Read('.cadre/references/creating-agents.md')`
+- Hook: `Read('.cadre/references/creating-hooks.md')`
 
 IF the request crosses categories (e.g., "create a hook that uses an LLM"): the LLM judgment goes into a SKILL OR AGENT that the hook DISPATCHES via `"type": "agent"` hook config; the hook itself stays deterministic.
 
@@ -139,12 +139,12 @@ OUTPUT: Verified syntax notes.
 ### Step 4: Read design science references
 
 Always read the north star:
-- `Read('cadre/references/creation-techniques.md')` — research-grounded ranking of the 10 instruction-following techniques. Apply the "Current best practice" synthesis at the end.
+- `Read('.cadre/references/creation-techniques.md')` — research-grounded ranking of the 10 instruction-following techniques. Apply the "Current best practice" synthesis at the end.
 
 For skills and agents (persona-style primitives):
-- `Read('cadre/references/persona-science.md')` — Role Identity construction (PRISM)
-- `Read('cadre/references/vocabulary-routing.md')` — Domain Vocabulary construction
-- `Read('cadre/references/agent-template.md')` — gold-standard exemplar
+- `Read('.cadre/references/persona-science.md')` — Role Identity construction (PRISM)
+- `Read('.cadre/references/vocabulary-routing.md')` — Domain Vocabulary construction
+- `Read('.cadre/references/agent-template.md')` — gold-standard exemplar
 
 For hooks: `creating-hooks.md` (already read in Step 2) plus `creation-techniques.md` plus live syntax from Step 3 are sufficient.
 
@@ -288,10 +288,10 @@ Why: Explicit paths. Bounded scope. Auditable.
 
 ## Available References
 
-- `cadre/references/creation-techniques.md` — **NORTH STAR.** Research-grounded ranking of the 10 instruction-following techniques.
-- `cadre/references/creating-skills.md` — Cadre patterns for skills.
-- `cadre/references/creating-agents.md` — Cadre patterns for agents (subagent and teammate modes).
-- `cadre/references/creating-hooks.md` — Cadre patterns for hooks (TS-on-Bun default; strict runtime verification).
-- `cadre/references/persona-science.md` — PRISM findings on persona effectiveness.
-- `cadre/references/vocabulary-routing.md` — Vocabulary mechanics, 15-year practitioner test, sub-domain clustering, vocabulary effectiveness test.
-- `cadre/references/agent-template.md` — Annotated gold-standard agent example.
+- `.cadre/references/creation-techniques.md` — **NORTH STAR.** Research-grounded ranking of the 10 instruction-following techniques.
+- `.cadre/references/creating-skills.md` — Cadre patterns for skills.
+- `.cadre/references/creating-agents.md` — Cadre patterns for agents (subagent and teammate modes).
+- `.cadre/references/creating-hooks.md` — Cadre patterns for hooks (TS-on-Bun default; strict runtime verification).
+- `.cadre/references/persona-science.md` — PRISM findings on persona effectiveness.
+- `.cadre/references/vocabulary-routing.md` — Vocabulary mechanics, 15-year practitioner test, sub-domain clustering, vocabulary effectiveness test.
+- `.cadre/references/agent-template.md` — Annotated gold-standard agent example.

@@ -176,10 +176,10 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 *Decision:* Authored `creating-skills.md`, `creating-agents.md`, `creating-hooks.md` as Cadre-specific patterns and decision criteria for each primitive type, layered atop the live Claude Code documentation.
 *Why:* Live docs are authoritative on syntax; Cadre patterns add the project's conventions, decision frameworks, and common pitfalls. Two-layer reference architecture (live docs + Cadre patterns) caught immediately as the right separation.
 
-### ADR-039: References moved from .claude/references/ to cadre/references/ at root (2026-04-24)
-*Decision:* All design-science reference docs live at `cadre/references/` (project root, tracked) rather than `.claude/references/`.
+### ADR-039: References moved from .claude/references/ to .cadre/references/ at root (2026-04-24)
+*Decision:* All design-science reference docs live at `.cadre/references/` (project root, tracked) rather than `.claude/references/`.
 *Why:* References are knowledge consumed by primitives, not harness primitives themselves. `.claude/` is for harness primitives; `cadre/` (a new namespace at root) for Cadre-specific knowledge. Tracked so refs ship with creator-cadre.
-*Implications:* Updated all path references in skills/agents that read from `cadre/references/*`.
+*Implications:* Updated all path references in skills/agents that read from `.cadre/references/*`.
 
 ### ADR-040: master-synthesis decomposed and deleted (2026-04-24)
 *Decision:* The user-uploaded master-synthesis.md ref decomposed: load-bearing content distributed into `creating-skills.md`, `creating-agents.md`, `vocabulary-routing.md`, and `persona-science.md`. Master-synthesis itself deleted.
@@ -187,7 +187,7 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 *SUPERSEDES:* implicit prior decision to keep master-synthesis as a primary ref.
 
 ### ADR-041: creation-techniques.md adopted as the north star reference (2026-04-24)
-*Decision:* User's research brief on instruction-following techniques (10 techniques ranked by published evidence) becomes the north star for skill/agent design. Stored at `cadre/references/creation-techniques.md` and referenced from all creating-X.md files.
+*Decision:* User's research brief on instruction-following techniques (10 techniques ranked by published evidence) becomes the north star for skill/agent design. Stored at `.cadre/references/creation-techniques.md` and referenced from all creating-X.md files.
 *Why:* Research-grounded ranking (position, format, output format, RLHF helpfulness, context volume, instruction density, constraint type, reasoning effort, specification level, few-shot examples) gives concrete predictions and a "Current best practice" synthesis. Higher rigor than master-synthesis.
 *Implications:* All future creator-cadre output should apply Technique 1-10 + the synthesis.
 
@@ -244,7 +244,7 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 *Why:* `creation-techniques.md` Technique 5 (total context / token volume) explicitly predicts the inline variant is anti-pattern (~2% effectiveness loss per 100K tokens; "burning 50K+ tokens before user's actual request"). Empirical validation would have just confirmed the prediction.
 
 ### ADR-054: creator-cadre ships with read-on-demand reference loading (2026-04-24)
-*Decision:* creator-cadre's SOP reads `cadre/references/*` at runtime per-step rather than inlining content into the skill body.
+*Decision:* creator-cadre's SOP reads `.cadre/references/*` at runtime per-step rather than inlining content into the skill body.
 *Why:* Aligns with progressive disclosure (master-synthesis-era principle preserved in `creating-skills.md`) and `creation-techniques.md` Technique 5. Skill body stays under 500 lines.
 
 ### ADR-055: plan-cadre as skill for collaborative planning within plan mode (2026-04-24)
@@ -314,9 +314,9 @@ Chronological record of architectural and tactical decisions made on the Cadre p
 *Implications:* No file template needed; no gitignore line added.
 
 ### ADR-068: `.claude/` Reddit-style scaffolding adopted; content migration deferred (2026-04-26, TODO #28)
-*Decision:* Scaffold the structured `.claude/` layout from the broader CC community: `.claude/{rules, hooks, commands, skills, agents, worktrees}/`. Empty subdirs (`.gitkeep`); `skills/` and `worktrees/` already populated. Personal-config siblings split via `*.local.md` / `*.local.json` (added to `.gitignore`). CLAUDE.md gets a brief "**`.claude/` directory shape**" entry describing the layout. The stale `.claude/references/` directory (leftover from a prior session's move to `cadre/references/`) is removed.
+*Decision:* Scaffold the structured `.claude/` layout from the broader CC community: `.claude/{rules, hooks, commands, skills, agents, worktrees}/`. Empty subdirs (`.gitkeep`); `skills/` and `worktrees/` already populated. Personal-config siblings split via `*.local.md` / `*.local.json` (added to `.gitignore`). CLAUDE.md gets a brief "**`.claude/` directory shape**" entry describing the layout. The stale `.claude/references/` directory (leftover from a prior session's move to `.cadre/references/`) is removed.
 *Why:* Pre-shape the namespace so future primitives slot in cleanly without reorganizing churn. Anticipatory but cheap.
-*Out of scope:* Content migration from CLAUDE.md to `rules/` deferred — no specialized guidance feels crowded yet, so YAGNI. Namespace cleanup `cadre/references/` → `.cadre/references/` deferred — design references and operational state are different content categories that benefit from separate top-level dirs.
+*Out of scope:* Content migration from CLAUDE.md to `rules/` deferred — no specialized guidance feels crowded yet, so YAGNI. Namespace cleanup `.cadre/references/` → `.cadre/references/` deferred — design references and operational state are different content categories that benefit from separate top-level dirs.
 
 ### ADR-069: Branches are the default flow; worktrees for parallel sessions only (2026-04-26)
 *Decision:* Default workflow for changes is plain branch + PR (`git checkout -b <name>`, edit, commit, push, PR, merge). Worktrees are reserved for cases that require a parallel Claude session (verifying a PR while continuing other work, long background tasks, parallel feature development). CLAUDE.md "Worktrees" doctrine entry refined accordingly: leads with "Default flow: branch + PR," followed by "Worktrees: parallel Claude sessions" as the called-out exception.
