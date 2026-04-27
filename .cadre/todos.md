@@ -345,13 +345,11 @@ A hook on ExitPlanMode would be a cleaner architecture for the persistence — t
 
 ## 29. Document `.claude/rules/` and `.claude/commands/` conventions
 
-Cadre has reference docs for skills / agents / hooks (`.cadre/references/creating-{skills,agents,hooks}.md`) but not for rules or commands. Required prerequisite for TODO #30 (CLAUDE.md content migration) — without documented conventions, the migration risks landing in the wrong format.
+**Status: DEFERRED (2026-04-27).** Two `claude-code-guide` research dispatches reshaped the original task. `.claude/commands/` is legacy — CC docs explicitly recommend skills (strict superset) for new work; the empty `.claude/commands/` folder was deleted in PR #19. No `creating-commands.md` will be written — documenting a deprecated path canonizes it. `.claude/rules/` is a real first-class CC primitive (modular CLAUDE.md with optional `paths:` glob activation, recursive markdown discovery), but the standalone `creating-rules.md` is deferred until TODO #30 walks through a real use case — per CLAUDE.md "Don't pre-invent taxonomy," the doc earns its slot when usage demands it.
 
-**Research:** read live Claude Code docs on `.claude/rules/` and `.claude/commands/` — file format, frontmatter (if any), invocation patterns, examples. Use `claude-code-guide` for grounding.
+**Inline conventions (placeholder until `creating-rules.md` is written):** rules are auto-loaded markdown guidance; no `-cadre` suffix; no I/O contract; topic-cohort granularity (one file per coherent topic); `paths:` glob for path-scoped activation. Known issues: `paths:` syntax fails on unquoted globs (anthropics/claude-code #17204); path-scoped rules trigger on Read but not Write (#23478); user-level rules ignore `paths:` (#21858).
 
-**Output:** `.cadre/references/creating-rules.md` and `.cadre/references/creating-commands.md`, matching the existing refs' shape — Cadre-specific patterns layered atop live CC documentation. Promote to north-star alongside `creation-techniques.md` (ADR-041) where appropriate.
-
-**Open dependencies:** none upstream. TODO #30 depends on this.
+**Open dependencies:** TODO #30 carries the rules-side doc obligation when it begins.
 
 ---
 
