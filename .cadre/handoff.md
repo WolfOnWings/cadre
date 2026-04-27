@@ -9,44 +9,47 @@ Active session log. Most-recent session lives here; prior session entries archiv
 
 ---
 
-## 2026-04-27 — handoff-mx restructure + plan-cadre interrogation rewrite
+## 2026-04-27 — handoff-mx Sprint A + namespace cleanup
 
 ### Narrative
 
-This session ran two independent improvement arcs back-to-back. The first began when the user surfaced a blunt concern: handoff-mx had grown too large. A diagnostic pass ranked every component by importance and surfaced two structural problems — logs were scattered (one file in `.claude/hooks/`, one loose in `.cadre/`), and the synthesizer SOP was undertested for narrative quality. The user directed consolidation of all logs to `.cadre/logs/` with logical subfolders, and requested a kata-style refine pass (modeled on `kata/agents/refine-kata.md` from a sibling project). That directive landed as `refactor/handoff-mx-logs`: the logger and prime hooks were updated to write to `.cadre/logs/handoff-mx/`, and the synthesizer SOP was restructured with a proper audience statement, three-bullet Narrative skeleton, a drop list, and a Step 4 self-critique pass, with the anti-pattern watchlist demoted to `handoff-mx-cadre.refs.md` to keep the always-loaded body lean. A second branch (`feat/handoff-mx-staff-eng-findings`) immediately followed, closing out the remaining items from the staff-engineer review artifact: logger filtering refinements, session_id-based slicing in the synthesizer, PostToolUse matcher narrowed in `settings.json`, prime-hook compression and SSOT naming, and the SOP restructure itself. Both branches shipped through PR #14 and PR #15 respectively.
+The session opened with the first live fire of the restructured handoff-mx pipeline. After confirming the synthesized entry was readable, the user requested a step-by-step action report of the prior handoff-mx run, then forwarded it to the staff-engineer for startup-time optimization analysis. The staff-engineer's output identified turn count (not computation) as the dominant cost: the six-call Phase 3 analysis sweep alone accounted for roughly 3–4 minutes of a 7-minute total. The highest-leverage remediation was collapsing that sweep into a single pre-baked parse script invocation (`handoff-mx-cadre.parse.ts`), and moving event filtering to logger write-time to reduce input size. A secondary signal: the orchestrator should auto-read the synthesized handoff at session start without being told — the prime hook was noted as the right injection point.
 
-The session then pivoted to plan-cadre. The user named the core defect precisely: the skill put too much generative burden on them — they were expected to produce ideas rather than evaluate them. The desired posture was interrogation-style planning modeled on `interrogate-kata` from the sibling project: the skill generates strong candidates and dispatches researcher + staff-engineer subagents in parallel so the user owns judgment, not generation. The role identity refinement was explicitly requested to use a PRISM-research-backed job title (per creator-cadre refs); it became "technical program manager." After an initial write the user caught half-step numbering in the SOP steps ("Renumerate — no half steps"); a 14-pass renumber pass fixed that. A final 30%-thinning pass hit concision without dropping performance-critical content. Committed to `feat/plan-cadre-tree-interrogation`, PR #16, merged. The git status at session open shows `plan-cadre/SKILL.md` still listed as modified, suggesting a post-merge local change or working-tree divergence — worth verifying.
+The user directed Sprint A against those findings. An attempt to use `/fork` was verified via `claude-code-guide` as a non-native CC primitive (no such built-in exists); work proceeded on a plain branch. In parallel, two `claude-code-guide` research subagents verified the conventions for `.claude/rules/` (first-class CC primitive: Markdown files, glob activation, modular CLAUDE.md alternative) and `.claude/commands/` (legacy format; skills are a strict superset, CC docs recommend migrating). The user chose Option C: no creating-commands.md (documenting a deprecated path canonizes it), delete the empty `.claude/commands/` folder, and move `cadre/references/` into `.cadre/references/`. The namespace consolidation reverses ADR-068's deliberate split — in practice, the separate `cadre/` root dir generated discovery friction without enough conceptual gain to justify it.
 
-User signal worth preserving: the user said "hold." immediately before the final Stop of the last working session, then the next event is the `.` that triggered this integration run. The explicit stated intent was "use the new plan skill on the taskboard-mx agent, next session." The hold may have resolved silently (nothing followed it), but it registered as unresolved at session end. Confirm at next session open whether anything was caught.
+The session closed with two PRs merged: PR #19 (namespace cleanup: delete `.claude/commands/`, move `cadre/references/` to `.cadre/references/`, update all path pointers) and PR #20 (session-end carryover: handoff integration commit, TODO #29 close, staff-engineer artifact, plan-cadre SKILL.md tweak). TODO #29 is formally closed as deferred per Option C: `.claude/commands/` documentation will not be written; a `.claude/rules/` reference doc is deferred until TODO #30's CLAUDE.md breakout work makes it load-bearing (tracked under TODO #30).
+
+Key surprises: (1) `/fork` is not a native CC primitive — CLAUDE.md's "Don't redefine CC primitives" doctrine applies; verify before acting. (2) The `cadre/references/` split from ADR-068 proved friction-generating in practice; reversal was straightforward once confirmed by the user. (3) The prime hook now pre-stages the `events.log` rename to `events.log.processing-<ts>` and writes `processing.lock` before dispatching the synthesizer, so the synthesizer's Step 1 reads the lock rather than performing the rename itself — this is the live architecture the current integration SOP runs against.
 
 ### Decisions
 
-No new ADRs this session. All changes were implementation against pre-existing architecture decisions.
+No new ADRs this session. Changes were implementation against pre-existing decisions, plus one ADR-068 reversal:
 
-- **Log path consolidation** — all handoff-mx logs now write to `.cadre/logs/handoff-mx/` (events, logger, prime); no residual log files in `.claude/hooks/`. Implementation-level, not ADR-worthy; captured here for path-change traceability.
-- **Synthesizer SOP restructure** — Narrative now has a declared audience (fresh-instance orchestrator), three-bullet skeleton (pivots / decisions / surprises), and a drop list. Anti-pattern exemplars demoted to `handoff-mx-cadre.refs.md`. Self-critique pass (Step 4) added. These are doctrine refinements to the synthesizer's own operating instructions, not new architectural decisions.
-- **plan-cadre posture** — skill rewritten from user-generative to interrogation-led: the orchestrator brings strong candidates, dispatches researcher (parallel with could phase) + staff-engineer (during should), and the user evaluates. Role identity set to "technical program manager" per PRISM framing.
+- **ADR-068 reversal — `.cadre/references/` as single namespace** — `cadre/references/` moved to `.cadre/references/`; the deliberate split from ADR-068 ("design refs vs operational state — different categories") reversed. Rationale: discovery friction outweighed conceptual gain in practice. All existing pointers updated. Implementation-level resolution of TODO #28/ADR-068's deferred "namespace cleanup" clause.
+- **Sprint A delivery** — parse script (`handoff-mx-cadre.parse.ts`) absorbs Phase 3 sweep; prime hook pre-stages rename and writes `processing.lock`; logger filters Read/Glob/Grep calls at write-time. These implement the staff-engineer review recommendations; no new ADR warranted (optimizations against ADR-073's boundary-synthesizer architecture).
+- **TODO #29 closed as deferred per Option C** — `.claude/commands/` folder deleted (was placeholder only); creating-commands.md will not be written; `.claude/rules/` reference doc deferred to TODO #30 scope. Captured in todos.md.
 
 ### Active Items
 
-- **taskboard-mx agent** — user's stated next session intent: run the new plan-cadre skill on the taskboard-mx agent design. Branch `feat/taskboard-cadre` was created this session (before the handoff-mx work began) and is presumably still open. Verify branch state before invoking plan-cadre.
-- **TODO #31 — handoff-mx events-log filtering / sampling.** Events log reached 190 lines across two working sessions and ~222KB raw. Not yet a UX crisis, but the signal-to-noise ratio on PostToolUse events (especially Read and Bash calls) is low. The narrowed PostToolUse matcher from this session (finding 10) helps; revisit if synthesis time climbs past 3 minutes.
-- **TODO #61 / ADR-061 — researcher-cadre format migration** (skill → agent). Untouched.
-- **TODO #29 — Document `.claude/rules/` and `.claude/commands/` conventions.** Untouched. Prerequisite for TODO #30.
-- **TODO #30 — Break out CLAUDE.md into `.claude/` primitives.** Untouched. Gated on TODO #29.
-- **TODO #14 — Three-review architecture detail.** Untouched; awaits CI + stranger-swarm + risk-detection layers.
-- **TODO #22 — Base CI workflow.** Untouched; gating prerequisite for auto-merge mechanics.
-- **plan-cadre/SKILL.md working-tree state** — git status at session open shows the file as modified. Confirm whether this is a stale index or a legitimate post-merge local change before next edit.
-- **"hold." signal** — user said "hold." at end of last working session with no follow-up. Low-stakes but worth a one-line check-in at next session open.
+- **taskboard-mx agent (TODO #27 / feat/taskboard-cadre branch)** — user's stated next-session intent from prior session: run the new plan-cadre skill on the taskboard-mx agent design. Branch `feat/taskboard-cadre` may still be open. Verify branch state before invoking plan-cadre.
+- **TODO #30 — Break out CLAUDE.md into `.claude/` primitives** — `.claude/rules/` reference doc deferred to this scope; now the gating prerequisite for that breakout. TODO #29 closed; TODO #30 open.
+- **TODO #31 — events-log filtering / sampling** — logger now filters Read/Glob/Grep at write-time (Sprint A); PostToolUse noise reduced. Monitor synthesis time across next few sessions; revisit if it climbs past 3 minutes.
+- **TODO #14 — Three-review architecture detail** — untouched; awaits CI + stranger-swarm + risk-detection layers.
+- **TODO #22 — Base CI workflow** — untouched; gating prerequisite for auto-merge mechanics.
+- **TODO #61 / ADR-061 — researcher-cadre format migration** (skill → agent) — untouched.
+- **Handoff auto-read injection (TODO #6 from sprint task list)** — prime hook should inject handoff.md into `additionalContext` after synthesis completes so the orchestrator gets it as L1-trust context rather than a text instruction. Not yet implemented; surfaced during session as a follow-up to the "shouldn't have to tell you" signal from the user.
+- **plan-cadre/SKILL.md** — a wording carryover (Step 5 simplification) landed in PR #20. File should be clean on main. Verify at next session open if any working-tree divergence.
 
 ### Changes
 
-- `.claude/hooks/handoff-mx-logger-cadre.ts` — updated log destination to `.cadre/logs/handoff-mx/`; added filtering logic per staff-engineer review findings; narrowed PostToolUse event capture
-- `.claude/hooks/handoff-mx-prime-cadre.ts` — updated log destination to `.cadre/logs/handoff-mx/`; compressed instruction body; added SSOT microcopy
-- `.claude/agents/handoff-mx-cadre.md` — SOP restructured: Narrative skeleton + drop list + Step 4 self-critique pass; anti-pattern watchlist bookended at top + bottom; Edit tool removed from tool grant
-- `.claude/agents/handoff-mx-cadre.refs.md` — created; holds anti-pattern exemplars and extended descriptions offloaded from synthesizer body
-- `.claude/settings.json` — PostToolUse matcher narrowed (reduces logger noise)
-- `.cadre/agent-output/staff-engineer-cadre-output-2026-04-26T22-30-00Z/optimization-plan.md` — committed as reference artifact for staff-engineer review findings
-- `.claude/skills/plan-cadre/SKILL.md` — rewritten: interrogation-led posture, parallel researcher + staff-engineer dispatch, PRISM role identity ("technical program manager"), renumbered steps, 30% line-count reduction
-- `.cadre/handoffs/2026-04-26.md` — appended with "backup_handoff archived; double-dispatch loop named" entry (this integration pass archival)
-- `.cadre/handoff.md` — replaced with this entry
+- `.claude/agents/handoff-mx-cadre.parse.ts` — created; Bun/TS parse script absorbing Phase 3 sweep; slices on most-recent SessionStart, re-emits current-session events to live log, prints structured JSON summary
+- `.claude/hooks/handoff-mx-prime-cadre.ts` — updated to pre-stage `events.log` rename + write `processing.lock` before synthesizer dispatch
+- `.claude/hooks/handoff-mx-logger-cadre.ts` — updated to filter Read/Glob/Grep PostToolUse events at write-time
+- `.claude/agents/handoff-mx-cadre.md` — SOP Step 1 updated to read `processing.lock` rather than perform rename; I/O contract and file footprint updated accordingly
+- `.claude/commands/` — deleted (legacy placeholder folder; `.gitkeep` only; CC docs recommend skills over commands)
+- `cadre/references/` — moved to `.cadre/references/` (all files preserved; all path pointers updated across tracked files)
+- `.cadre/todos.md` — TODO #29 closed as deferred per Option C
+- `.cadre/agent-output/staff-engineer-cadre-output-2026-04-27T131553Z/optimization-plan.md` — created; staff-engineer review artifact for handoff-mx startup optimization
+- `.cadre/handoff.md` — replaced with this entry (prior entry archived to `.cadre/handoffs/2026-04-27.md`)
+- `.cadre/handoffs/2026-04-27.md` — created; archived "handoff-mx restructure + plan-cadre interrogation rewrite" entry
+- `.claude/skills/plan-cadre/SKILL.md` — minor wording carryover: Step 5 simplified (dropped vestigial "OR check with user" alternative)
