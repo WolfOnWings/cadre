@@ -15,15 +15,19 @@
 //         hook, because `"type": "agent"` hooks fail silently in current CC build
 //         per GitHub Issue #39184)
 //     (c) the dispatch instruction
+//   - deletes `.cadre/logs/handoff-mx/handoff-fresh.flag` if present (stale-flag
+//     cleanup: SessionStart already injects handoff.md, so the surface hook
+//     should not re-inject the same content on the first UserPromptSubmit)
 //   - appends to `.cadre/logs/handoff-mx/prime.log` on error only
 // Failure mode: any error → empty additionalContext + log; exit 0 (never gate harness).
 
-import { appendFileSync, mkdirSync, existsSync, renameSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, existsSync, renameSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { dirname } from "node:path";
 
 const AGENT_NAME = "handoff-mx-cadre";
 const EVENTS_LOG = ".cadre/logs/handoff-mx/events.log";
 const LOCK_FILE = ".cadre/logs/handoff-mx/processing.lock";
+const FLAG_FILE = ".cadre/logs/handoff-mx/handoff-fresh.flag";
 const HANDOFF_FILE = ".cadre/handoff.md";
 const HOOK_LOG = ".cadre/logs/handoff-mx/prime.log";
 
@@ -96,6 +100,14 @@ try {
       handoffContent = null;
     }
   }
+
+  // Stale-flag cleanup: SessionStart already injects handoff.md content above,
+  // so a leaked handoff-fresh.flag from the prior session would cause the
+  // surface hook to re-inject the same content on the first UserPromptSubmit
+  // of this session. Drop it here.
+  try {
+    if (existsSync(FLAG_FILE)) unlinkSync(FLAG_FILE);
+  } catch {}
 
   console.log(
     JSON.stringify({

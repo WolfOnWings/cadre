@@ -12,7 +12,8 @@
       {
         "matcher": "*",
         "hooks": [
-          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" },
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-surface-cadre.ts" }
         ]
       }
     ],
