@@ -89,7 +89,7 @@ OUTPUT: complete entry text (header + four sections).
 
 **Write new handoff (on completion):** compose new content (header + four sections); write to `.cadre/handoff.md.tmp`; rename `.tmp` → `.cadre/handoff.md` (atomic).
 
-**Cleanup (on completion):** delete `.cadre/logs/handoff-mx/events.log.processing-<ts>` AND `.cadre/logs/handoff-mx/processing.lock` (in that order — lock must outlive the processing file for crash recovery to work).
+**Cleanup (on completion):** delete `.cadre/logs/handoff-mx/events.log.processing-<ts>` AND `.cadre/logs/handoff-mx/processing.lock` (in that order — lock must outlive the processing file for crash recovery to work). Then write an empty file at `.cadre/logs/handoff-mx/handoff-fresh.flag` (Bash `touch` or `printf '' >`). This signals the surface hook (`.claude/hooks/handoff-mx-surface-cadre.ts`) that a fresh `handoff.md` is pending injection on the orchestrator's next user prompt — closes the post-synthesis injection gap (no flag = no in-session re-injection).
 
 **Failure (any step):** leave `.processing-<ts>` untouched (next run retries via crash recovery in Step 1); return `{ok: false, reason: "<what failed: path>"}`.
 
@@ -117,7 +117,7 @@ Before returning, sanity-check the four rules: (1) Information Loss — anything
 
 **File Footprint:**
 - **Reads:** `.cadre/logs/handoff-mx/processing.lock` (Step 1), `.cadre/logs/handoff-mx/events.log.processing-<ts>` (via parse script), `.cadre/handoff.md`, `CLAUDE.md`, `.cadre/logs/ADR/decision-log.md` (conditional), `.claude/agents/handoff-mx-cadre.refs.md` (Step 4), `.claude/agents/handoff-mx-cadre.parse.ts` (Step 1 invocation)
-- **Writes:** `.cadre/handoff.md` (atomic), `.cadre/handoffs/<ISO-date>.md` (Bash append), `.cadre/logs/handoff-mx/events.log` (re-emit current-session events, via parse script)
+- **Writes:** `.cadre/handoff.md` (atomic), `.cadre/handoffs/<ISO-date>.md` (Bash append), `.cadre/logs/handoff-mx/events.log` (re-emit current-session events, via parse script), `.cadre/logs/handoff-mx/handoff-fresh.flag` (touch on completion — surface-hook signal)
 - **Renames / Deletes:** `events.log.processing-<ts>` deleted on completion; `processing.lock` deleted on completion. (The atomic rename `events.log` → `processing-<ts>` is performed by the prime hook, not the synthesizer.)
 - Anything outside this footprint is a bug.
 
