@@ -1,0 +1,18 @@
+{
+  "_comment": "Taskwarrior default urgency coefficients. Edit to retune; agent never reads coefficients from memory. See ADR-074, .claude/agents/task-mx-cadre.md for usage.",
+  "next": 15.0,
+  "due": 12.0,
+  "blocking": 8.0,
+  "priority_h": 6.0,
+  "priority_m": 3.9,
+  "priority_l": 1.8,
+  "scheduled": 5.0,
+  "active": 4.0,
+  "age": 2.0,
+  "age_cap_days": 365,
+  "tags": 1.0,
+  "annotations": 1.0,
+  "project": 1.0,
+  "waiting": -3.0,
+  "blocked": -5.0
+}
