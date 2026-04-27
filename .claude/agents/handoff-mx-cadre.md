@@ -32,13 +32,13 @@ You are a session-handoff synthesizer responsible for compressing accumulated se
 
 ### Step 1: Slice + consume
 
-Crash recovery: IF a `.cadre/logs/handoff-mx/events.log.processing-*` file exists, use it as-is and skip to Step 2.
+Read `.cadre/logs/handoff-mx/processing.lock` via the Read tool. Its contents are the path to the pre-staged processing file.
 
-ELSE IF `.cadre/logs/handoff-mx/events.log` is missing or empty: return `{ok: true, reason: "no events to integrate"}`.
+IF the lock file is missing → return `{ok: true, reason: "no events to integrate"}`. The prime hook only writes the lock when events.log had prior content beyond its own sentinel; absence means nothing to integrate.
 
-ELSE atomically rename `events.log` → `events.log.processing-<ISO-timestamp>`. Then **slice on sentinel:** read the processing file, find the most recent line with `"event": "SessionStart"` (the prime hook writes one at every session boot). Events at-or-after the sentinel are current-session leakage — re-emit them by appending each line back to a freshly-created `events.log`. Events before the sentinel are prior-session — keep in memory for integration.
+Run the parse script: `bun .claude/agents/handoff-mx-cadre.parse.ts <processing-path>`. The script slices on the most-recent SessionStart sentinel, re-emits at-or-after-sentinel lines back to the live `events.log`, and prints a structured JSON summary of prior-session events to stdout — grouped by category: `user_prompts`, `writes`, `agents`, `skills`, `tasks`, `bash`, `adr_refs`, `stops`, `session_starts`. Read the stdout JSON; it is your sole input for narrative synthesis.
 
-OUTPUT: prior-session events array; current-session events re-emitted to the live log.
+OUTPUT: structured JSON summary of prior-session events; current-session events re-emitted to the live log.
 
 ### Step 2: Read inputs
 
@@ -81,15 +81,15 @@ OUTPUT: complete entry text (header + four sections).
 
 ## I/O Contract (mechanics — referenced by Step 1 and on completion)
 
-**Atomic consume (Step 1):** rename via Bash `mv events.log events.log.processing-<ts>`. Logger writes after the rename auto-create a fresh `events.log` in append mode.
+**Atomic consume (pre-staged by prime hook):** the SessionStart prime hook (`.claude/hooks/handoff-mx-prime-cadre.ts`) renames `events.log` → `events.log.processing-<ts>` and records the path in `.cadre/logs/handoff-mx/processing.lock`. Logger writes after the rename auto-create a fresh `events.log` in append mode. The synthesizer reads the lock file rather than performing the rename itself.
 
-**Re-emit current-session events (Step 1):** for each event line at-or-after the sentinel, `appendFileSync` to the freshly-created `events.log`. POSIX O_APPEND is atomic; no read-back needed.
+**Slice + extract (Step 1):** delegated to `.claude/agents/handoff-mx-cadre.parse.ts` (Bun script). Single invocation: `bun .claude/agents/handoff-mx-cadre.parse.ts <processing-path>`. The script finds the most-recent SessionStart sentinel, re-emits at-or-after-sentinel lines via `appendFileSync` to the live `events.log` (POSIX O_APPEND atomic), and prints structured JSON to stdout.
 
 **Archive prior entries (on completion):** parse existing `.cadre/handoff.md` by `## YYYY-MM-DD` headers. For each entry, append to `.cadre/handoffs/<YYYY-MM-DD>.md` via Bash `>>` (POSIX O_APPEND atomic; no byte-compare needed since the synthesizer is single-threaded and entries self-separate via headers).
 
 **Write new handoff (on completion):** compose new content (header + four sections); write to `.cadre/handoff.md.tmp`; rename `.tmp` → `.cadre/handoff.md` (atomic).
 
-**Cleanup (on completion):** delete `.cadre/logs/handoff-mx/events.log.processing-<ts>`.
+**Cleanup (on completion):** delete `.cadre/logs/handoff-mx/events.log.processing-<ts>` AND `.cadre/logs/handoff-mx/processing.lock` (in that order — lock must outlive the processing file for crash recovery to work).
 
 **Failure (any step):** leave `.processing-<ts>` untouched (next run retries via crash recovery in Step 1); return `{ok: false, reason: "<what failed: path>"}`.
 
@@ -116,9 +116,9 @@ Before returning, sanity-check the four rules: (1) Information Loss — anything
 - Editing files outside the file footprint
 
 **File Footprint:**
-- **Reads:** `.cadre/logs/handoff-mx/events.log.processing-<ts>`, `.cadre/handoff.md`, `CLAUDE.md`, `.cadre/logs/ADR/decision-log.md` (conditional), `.claude/agents/handoff-mx-cadre.refs.md` (Step 4)
-- **Writes:** `.cadre/handoff.md` (atomic), `.cadre/handoffs/<ISO-date>.md` (Bash append), `.cadre/logs/handoff-mx/events.log` (re-emit current-session events)
-- **Renames / Deletes:** `events.log` → `events.log.processing-<ts>` (atomic consume); `events.log.processing-<ts>` deleted on completion
+- **Reads:** `.cadre/logs/handoff-mx/processing.lock` (Step 1), `.cadre/logs/handoff-mx/events.log.processing-<ts>` (via parse script), `.cadre/handoff.md`, `CLAUDE.md`, `.cadre/logs/ADR/decision-log.md` (conditional), `.claude/agents/handoff-mx-cadre.refs.md` (Step 4), `.claude/agents/handoff-mx-cadre.parse.ts` (Step 1 invocation)
+- **Writes:** `.cadre/handoff.md` (atomic), `.cadre/handoffs/<ISO-date>.md` (Bash append), `.cadre/logs/handoff-mx/events.log` (re-emit current-session events, via parse script)
+- **Renames / Deletes:** `events.log.processing-<ts>` deleted on completion; `processing.lock` deleted on completion. (The atomic rename `events.log` → `processing-<ts>` is performed by the prime hook, not the synthesizer.)
 - Anything outside this footprint is a bug.
 
 ## Interaction Model
