@@ -221,6 +221,10 @@ Preresponse attention-point reminders (YAML `rule:` / `rationale:` / `examples:`
 - Target failure modes: premature decision-space bounding, over-specification, 1-2 exchange patterns, steering vs collaborating.
 - Cadre-proper infrastructure, not a local fix.
 
+**Trigger candidates (notes for design):**
+- TaskUpdate→completed: "did you commit the prior task before starting the next?" Catches the bundle-at-end pattern at the right moment — task transitions are when the bisect surface forms. Pairs with the **Per-task commits in multi-task work** doctrine in CLAUDE.md.
+- (Add more as observed.)
+
 ---
 
 ## 16. CLAUDE.md addition for premature-bounding / response-bloat failure modes
