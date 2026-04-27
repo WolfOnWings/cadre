@@ -7,10 +7,14 @@
 //   - if events.log has prior content beyond the sentinel: atomically renames
 //     events.log → events.log.processing-<ts> and writes the path to processing.lock.
 //     This pre-stages the consume so the synthesizer skips Phase 1 of its SOP.
-//   - emits hookSpecificOutput.additionalContext via stdout — terse orientation
-//     telling the orchestrator to dispatch the synthesizer subagent (subagent runs
-//     there, not in a hook, because `"type": "agent"` hooks fail silently in current
-//     CC build per GitHub Issue #39184)
+//   - emits hookSpecificOutput.additionalContext via stdout — three-part composition:
+//     (a) the active handoff.md entry (L1 trust: orchestrator has prior-session
+//         context as data, not as a "remember to read" task)
+//     (b) terse orientation telling the orchestrator to dispatch the synthesizer
+//         subagent for prior-session integration (subagent runs there, not in a
+//         hook, because `"type": "agent"` hooks fail silently in current CC build
+//         per GitHub Issue #39184)
+//     (c) the dispatch instruction
 //   - appends to `.cadre/logs/handoff-mx/prime.log` on error only
 // Failure mode: any error → empty additionalContext + log; exit 0 (never gate harness).
 
@@ -20,12 +24,26 @@ import { dirname } from "node:path";
 const AGENT_NAME = "handoff-mx-cadre";
 const EVENTS_LOG = ".cadre/logs/handoff-mx/events.log";
 const LOCK_FILE = ".cadre/logs/handoff-mx/processing.lock";
+const HANDOFF_FILE = ".cadre/handoff.md";
 const HOOK_LOG = ".cadre/logs/handoff-mx/prime.log";
 
-const PRIME_INSTRUCTION = `[handoff-mx prime] First action this session:
-1. Dispatch the \`${AGENT_NAME}\` subagent via the Agent tool with prompt "Execute integration SOP against current state."
-2. Surface a one-line confirmation to the user from its \`reason\` field (e.g., "Synthesized N events; new entry: '<descriptor>'") before proceeding.
-3. Then handle the user's actual request. One-time per session.`;
+function buildContext(handoffContent: string | null, dispatchNeeded: boolean): string {
+  const parts: string[] = [];
+  if (handoffContent && handoffContent.trim()) {
+    parts.push(
+      `[handoff-mx context] Active handoff entry (your session pickup context):\n\n${handoffContent.trim()}`
+    );
+  }
+  if (dispatchNeeded) {
+    parts.push(
+      `[handoff-mx prime] Prior-session events are pending integration. First action this session:\n` +
+        `1. Dispatch the \`${AGENT_NAME}\` subagent via the Agent tool with prompt "Execute integration SOP against current state."\n` +
+        `2. Surface a one-line confirmation to the user from its \`reason\` field (e.g., "Synthesized N events; new entry: '<descriptor>'") before proceeding.\n` +
+        `3. Then handle the user's actual request. One-time per session.`
+    );
+  }
+  return parts.join("\n\n---\n\n");
+}
 
 function ensureDir(path: string) {
   const dir = dirname(path);
@@ -67,11 +85,23 @@ try {
     }
   }
 
+  // Read handoff.md and inject as L1 context. The active entry is the
+  // orchestrator's session-pickup context — surfacing it via additionalContext
+  // means the orchestrator has it as data, not as an instruction to follow.
+  let handoffContent: string | null = null;
+  if (existsSync(HANDOFF_FILE)) {
+    try {
+      handoffContent = readFileSync(HANDOFF_FILE, "utf-8");
+    } catch {
+      handoffContent = null;
+    }
+  }
+
   console.log(
     JSON.stringify({
       hookSpecificOutput: {
         hookEventName: "SessionStart",
-        additionalContext: dispatch ? PRIME_INSTRUCTION : "",
+        additionalContext: buildContext(handoffContent, dispatch),
       },
     })
   );
