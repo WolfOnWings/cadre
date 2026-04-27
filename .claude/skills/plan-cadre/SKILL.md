@@ -84,7 +84,7 @@ Hold ≥3 alternatives in `## Could` (short label + one-line description, even f
 ### Step 5: Researcher returns — weave findings
 Fold researcher output into the live could-tree: new candidates → add to `## Could` with `(via researcher)` attribution; new branches → enumerate as open junctures; supporting/undermining evidence → annotate existing candidates with finding + confidence. Resume interrogation; the next question may be one the research prompted.
 
-If could finishes before researcher returns, hold should until research integrates OR check with user whether to proceed (tradeoff: speed vs evidence base).
+If could finishes before researcher returns, hold should until research integrates.
 
 ### Step 6: Brainstorm — Should (narrowing + staff-engineer dispatch)
 Surface candidates from could; ask which align best with intent. Same depth-first interrogation pattern with strong candidates + recommendation per question.
