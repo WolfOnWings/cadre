@@ -11,15 +11,51 @@ import { dirname } from "node:path";
 
 const EVENTS_LOG = ".cadre/logs/handoff-mx/events.log";
 const HOOK_LOG = ".cadre/logs/handoff-mx/logger.log";
-const TRUNCATE_AT = 4096; // chars; cap on individual fields to bound entry size
-// Tools whose tool_response is recoverable from re-reading and not narrative-load-bearing.
-// Skipping them cuts events-log bloat (TODO #31).
-const RECOVERABLE_TOOLS = new Set(["Read", "Glob", "Grep"]);
 
-function trunc(s: unknown, n = TRUNCATE_AT): string {
+// tool_response is kept only for narrative-load-bearing tools — those whose return
+// value carries session-arc signal (decisions, subagent results, user choices).
+// All others (Read/Glob/Grep/Bash/Edit/Write/etc.) get tool_input only — the response
+// is recoverable from re-read, git, or transcript if needed.
+const NARRATIVE_TOOLS = new Set(["TodoWrite", "Skill", "Task", "Agent", "AskUserQuestion"]);
+
+function trunc(s: unknown, n: number): string {
   if (s == null) return "";
   const str = typeof s === "string" ? s : JSON.stringify(s);
   return str.length > n ? str.slice(0, n) + "…[truncated]" : str;
+}
+
+// Per-tool structural extraction — preserves identifying fields (file_path, command,
+// pattern, subagent_type) while truncating bulky payloads (content, stdout, prompt).
+// Replaces the previous serialize-then-truncate-blob approach which stripped
+// load-bearing fields when the input was long.
+function compactInput(tool: string | null, input: unknown): unknown {
+  if (input == null) return null;
+  const i = input as Record<string, unknown>;
+  switch (tool) {
+    case "Read":
+      return { file_path: i.file_path, offset: i.offset, limit: i.limit };
+    case "Glob":
+      return { pattern: i.pattern, path: i.path };
+    case "Grep":
+      return { pattern: i.pattern, path: i.path, output_mode: i.output_mode, glob: i.glob, type: i.type };
+    case "Edit":
+      return { file_path: i.file_path, replace_all: i.replace_all };
+    case "Write":
+      return { file_path: i.file_path };
+    case "Bash":
+    case "PowerShell":
+      return { command: trunc(i.command, 512), description: i.description };
+    case "Task":
+    case "Agent":
+      return { subagent_type: i.subagent_type, description: i.description };
+    case "AskUserQuestion":
+    case "TodoWrite":
+    case "TaskCreate":
+    case "TaskUpdate":
+      return i;
+    default:
+      return trunc(input, 512);
+  }
 }
 
 function ensureDir(path: string) {
@@ -41,47 +77,35 @@ try {
     session_id: payload.session_id ?? null,
   };
 
-  // Event-specific fields. Field names per live CC docs (verified at impl time;
-  // see plan's hook-payload verification step).
   switch (event) {
     case "UserPromptSubmit":
-      entry.prompt = trunc(payload.prompt);
+      entry.prompt = trunc(payload.prompt, 1024);
       break;
     case "PostToolUse":
       const toolName = payload.tool_name ?? null;
       entry.tool = toolName;
-      entry.tool_input = trunc(payload.tool_input);
-      if (!RECOVERABLE_TOOLS.has(toolName)) {
-        entry.tool_response = trunc(payload.tool_response);
+      entry.tool_input = compactInput(toolName, payload.tool_input);
+      if (NARRATIVE_TOOLS.has(toolName)) {
+        entry.tool_response = trunc(payload.tool_response, 1024);
       }
       break;
     case "Stop":
-      // Stop is a turn-boundary marker. transcript_path lets the synthesizer
-      // read full session prose if needed for narrative reconstruction.
       entry.transcript_path = payload.transcript_path ?? null;
       break;
     case "SessionEnd":
-      // SessionEnd marker — integration runs at next SessionStart's synthesizer
-      // (SessionEnd hook type doesn't support `agent` per CC docs, so we record
-      // a marker here and let the next session integrate).
       entry.reason = payload.reason ?? null;
       entry.transcript_path = payload.transcript_path ?? null;
       break;
     default:
-      // Unknown event — capture what we have for diagnostics, don't crash.
-      entry.raw_payload = trunc(payload);
+      entry.raw_payload = trunc(payload, 512);
   }
 
   ensureDir(EVENTS_LOG);
   appendFileSync(EVENTS_LOG, JSON.stringify(entry) + "\n");
 
-  // logger.log is error-only — success path stays silent. Catch block below logs failures.
-
-  // Empty JSON output — pass-through; don't inject context, don't decide.
   console.log("{}");
   process.exit(0);
 } catch (err) {
-  // Non-blocking: log error, exit 0. Never gate the harness.
   try {
     ensureDir(HOOK_LOG);
     appendFileSync(HOOK_LOG, `${ts} ERROR ${(err as Error)?.message ?? err}\n`);
