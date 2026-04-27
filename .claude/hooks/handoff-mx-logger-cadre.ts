@@ -12,9 +12,14 @@ import { dirname } from "node:path";
 const EVENTS_LOG = ".cadre/logs/handoff-mx/events.log";
 const HOOK_LOG = ".cadre/logs/handoff-mx/logger.log";
 
+// Read/Glob/Grep are pure mechanism — file lookup, no arc signal. Skipped at the
+// write boundary so the synthesizer reads less. Bash retained because git/test/build
+// commands carry arc signal that's not feasible to filter by command-string parsing.
+const SKIP_TOOLS = new Set(["Read", "Glob", "Grep"]);
+
 // tool_response is kept only for narrative-load-bearing tools — those whose return
 // value carries session-arc signal (decisions, subagent results, user choices).
-// All others (Read/Glob/Grep/Bash/Edit/Write/etc.) get tool_input only — the response
+// All others (Bash/Edit/Write/etc.) get tool_input only — the response
 // is recoverable from re-read, git, or transcript if needed.
 const NARRATIVE_TOOLS = new Set(["TodoWrite", "Skill", "Task", "Agent", "AskUserQuestion"]);
 
@@ -83,6 +88,10 @@ try {
       break;
     case "PostToolUse":
       const toolName = payload.tool_name ?? null;
+      if (SKIP_TOOLS.has(toolName)) {
+        console.log("{}");
+        process.exit(0);
+      }
       entry.tool = toolName;
       entry.tool_input = compactInput(toolName, payload.tool_input);
       if (NARRATIVE_TOOLS.has(toolName)) {
