@@ -100,7 +100,7 @@ Split into two PRs per Brooks reflection. PR #1 is the load-bearing simplificati
 1. **`.claude/` Reddit-style restructure.** Create `rules/`, `hooks/`, `commands/`, `agents/` (skills/ already exists).
 2. **`*.local` convention** for personal vs team config.
 3. **CLAUDE.md becomes terser**; specialized guidance migrates to `rules/`.
-4. **Possible namespace cleanup:** `cadre/references/` → `.cadre/references/` for one canonical namespace (or split into its own PR if scope warrants).
+4. **Possible namespace cleanup:** `.cadre/references/` → `.cadre/references/` for one canonical namespace (or split into its own PR if scope warrants).
 
 **Last Responsible Moment check:** deciding now because we need to ship something coherent. PR #1 is genuinely load-bearing; PR #2 is anticipatory and could even be deferred indefinitely if the team-vs-personal split never bites. No axis benefits from longer optionality on PR #1's content.
 
@@ -111,7 +111,7 @@ Five candidate shifts surfaced; one resulted in a meaningful Will adjustment.
 1. **Scope split (Will-level shift, applied):** un-gitignore + native worktrees ships as PR #1; `.claude/` restructure ships as PR #2 or later. Cleaner historical artifact, smaller blast radius per PR, easier to revert if anything goes wrong.
 2. **Branch identity (deferred to architect):** `feat/playbook-cadre` is now misleading (playbook concept is being deleted). Architect phase picks an honest name.
 3. **CC native verification (deferred to architect):** docs-based research; live sanity check is cheap and catches any drift.
-4. **Two `cadre/` namespaces (deferred to PR #2 or its own PR):** `cadre/references/` + `.cadre/` both tracked but doing different things. Cleanup opportunity, not load-bearing.
+4. **Two `cadre/` namespaces (deferred to PR #2 or its own PR):** `.cadre/references/` + `.cadre/` both tracked but doing different things. Cleanup opportunity, not load-bearing.
 5. **Pre-tracking scrub (folded into PR #1 as step 1):** explicit step to scan `.cadre/` before un-gitignoring.
 
 **No further loop-back to Could/Should.** Reflection confirms the high-level shape; the split is a Will refinement, not a re-opening.

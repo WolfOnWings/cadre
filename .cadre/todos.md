@@ -325,7 +325,7 @@ Each level sees only the level directly below it. CLAUDE.md is shared context at
 
 ## 28. `.claude/` Reddit-style restructure (deferred from PR #4)
 
-**Status: DONE — scaffold-only (2026-04-26).** Empty `.claude/{rules, hooks, commands, agents}/` directories scaffolded with `.gitkeep`; `skills/` and `worktrees/` already existed. CLAUDE.md doctrine entry "**`.claude/` directory shape**" added under "Git and review architecture" describing the layout, the `*.local.md` / `*.local.json` personal-config convention (added to `.gitignore`), and the "shape without substance" stance — subdirs sit empty until real usage warrants a primitive. Stale empty `.claude/references/` (leftover from prior session's move to `cadre/references/`) removed. **Out of scope (deferred):** content migration from CLAUDE.md to `rules/` (no specialized guidance feels crowded yet); namespace cleanup `cadre/references/` → `.cadre/references/` (different category — design refs vs operational state — so leaving distinct). Both available as future work when felt-need surfaces. ADR-068.
+**Status: DONE — scaffold-only (2026-04-26).** Empty `.claude/{rules, hooks, commands, agents}/` directories scaffolded with `.gitkeep`; `skills/` and `worktrees/` already existed. CLAUDE.md doctrine entry "**`.claude/` directory shape**" added under "Git and review architecture" describing the layout, the `*.local.md` / `*.local.json` personal-config convention (added to `.gitignore`), and the "shape without substance" stance — subdirs sit empty until real usage warrants a primitive. Stale empty `.claude/references/` (leftover from prior session's move to `.cadre/references/`) removed. **Out of scope (deferred):** content migration from CLAUDE.md to `rules/` (no specialized guidance feels crowded yet); namespace cleanup `.cadre/references/` → `.cadre/references/` (different category — design refs vs operational state — so leaving distinct). Both available as future work when felt-need surfaces. ADR-068.
 
 ---
 
@@ -345,11 +345,11 @@ A hook on ExitPlanMode would be a cleaner architecture for the persistence — t
 
 ## 29. Document `.claude/rules/` and `.claude/commands/` conventions
 
-Cadre has reference docs for skills / agents / hooks (`cadre/references/creating-{skills,agents,hooks}.md`) but not for rules or commands. Required prerequisite for TODO #30 (CLAUDE.md content migration) — without documented conventions, the migration risks landing in the wrong format.
+Cadre has reference docs for skills / agents / hooks (`.cadre/references/creating-{skills,agents,hooks}.md`) but not for rules or commands. Required prerequisite for TODO #30 (CLAUDE.md content migration) — without documented conventions, the migration risks landing in the wrong format.
 
 **Research:** read live Claude Code docs on `.claude/rules/` and `.claude/commands/` — file format, frontmatter (if any), invocation patterns, examples. Use `claude-code-guide` for grounding.
 
-**Output:** `cadre/references/creating-rules.md` and `cadre/references/creating-commands.md`, matching the existing refs' shape — Cadre-specific patterns layered atop live CC documentation. Promote to north-star alongside `creation-techniques.md` (ADR-041) where appropriate.
+**Output:** `.cadre/references/creating-rules.md` and `.cadre/references/creating-commands.md`, matching the existing refs' shape — Cadre-specific patterns layered atop live CC documentation. Promote to north-star alongside `creation-techniques.md` (ADR-041) where appropriate.
 
 **Open dependencies:** none upstream. TODO #30 depends on this.
 
