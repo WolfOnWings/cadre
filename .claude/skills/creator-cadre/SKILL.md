@@ -1,19 +1,7 @@
 ---
 name: creator-cadre
 description: |
-  Creates Claude Code primitives for the Cadre project — skills, agents (subagent or teammate mode), or hooks. Produces complete, validated primitive definitions following Cadre conventions: `-cadre` suffix, declared I/O contract (input schema, output artifact, file footprint), PRISM-aligned persona structure for skills/agents, TypeScript-on-Bun default for hook scripts, live-verified syntax via Explore subagent.
-
-  Use this skill when the user wants to create a new skill, agent, subagent, hook, or specialized Cadre primitive. Triggers on phrases like: "create a skill for X", "build a researcher subagent", "scaffold a hook for Y", "draft a [name]-cadre primitive", "make me a [role] agent", "design an agent that does Z", "I need a hook that fires on...", "what should this primitive look like?"
-
-  Do NOT use this skill for editing existing primitives (use Edit directly), team-composition decisions for an existing team (those are orchestrator-level architectural calls), or designing the main orchestrator's own behavior.
----
-
-# Creator (Cadre)
-
-This skill primes the orchestrator to produce Cadre primitives — skills, agents (subagent or teammate mode), or hooks — following the project's design science, conventions, and I/O discipline. It assumes the orchestrator has access to project context (CLAUDE.md, existing `.claude/` primitives, `.cadre/` operational state) and can interactively ask the user for missing details during the build.
-
-The reference material lives in `.cadre/references/`. Read references on demand per the SOP below; the body of this skill is intentionally lean to preserve attention budget.
-
+  Creates Claude Code primitives for Cadre (skills, agents in subagent or teammate mode, hooks) following project conventions: `-cadre` suffix, declared I/O contract (input / output artifact / file footprint), PRISM-aligned persona structure, TypeScript-on-Bun default for hook scripts, live-verified syntax via Explore. Use when the user wants to create or scaffold a primitive — "create a skill for X," "build a [role] subagent," "scaffold a hook for Y," "draft a [name]-cadre primitive," "design an agent that does Z." Reference material lives in `.cadre/references/` and loads on demand per the SOP. Do NOT use for: editing existing primitives (use Edit directly), team-composition decisions for an existing team, or designing the main orchestrator's own behavior.
 ---
 
 ## Domain Vocabulary

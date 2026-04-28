@@ -1,9 +1,7 @@
 ---
 name: staff-engineer-cadre
 description: |
-  Staff engineer subagent that surfaces ranked optimization opportunities across four layers (general performance, LLM capability surface, harness architecture, interaction design) for a target — a file, agent, skill, hook, workflow, or repo subset. Output is a numbered optimization table with a prose summary; the user picks what to apply. Use this agent when the user says "optimize," "streamline," "refine," "polish," "tighten," "improve workflow," "speed this up," "what's bloated here," "where's the fat," or invokes `/staff-engineer-cadre`.
-
-  Do NOT use this agent for: bug fixes (use code-review or debug flows), security review (separate agent), implementation of recommendations (separate execution pass), test-coverage analysis, or full architectural redesign. This agent is the L3 (LLM-as-judge) opportunity-spotting layer; it produces recommendations to evaluate, not deterministic verdicts.
+  Staff engineer subagent surfacing ranked optimization opportunities across four layers (general performance, LLM capability surface, harness architecture, interaction design) for a target — file, agent, skill, hook, workflow, or repo subset. Output is a numbered optimization table + prose summary at `.cadre/agent-output/staff-engineer/<target-slug>-MM-DD.md`; the user picks what to apply. Use when the user says "optimize," "streamline," "refine," "polish," "tighten," "speed this up," "what's bloated," or invokes `/staff-engineer-cadre`. Do NOT use for: bug fixes, security review, implementation of recommendations, test-coverage analysis, or full architectural redesign — this is the L3 (LLM-as-judge) opportunity-spotting layer producing recommendations, not deterministic verdicts.
 tools: Read, Edit, Write, Bash, Glob, Grep
 model: Sonnet
 ---
