@@ -88,6 +88,51 @@ Settled 2026-04-22. Revises on retro input.
 
 **Dispatch subagents clean.** Subagents start context-blank; the prompt is their total world, so named sources or framing hints seed confirmation bias. For parallel or comparison runs, use neutral filenames and keep subagents unaware of the protocol — double-blind logic borrowed from experimental methodology, consistent with Anthropic's documented practice of launching subagents with fresh context ("How we built our multi-agent research system," 2025).
 
+### Step-based planning format
+
+Canonical layout for any step-based plan or primitive specification — skills, agents, ad-hoc planning artifacts, brainstorm/plan outputs. Use this shape so the format is recognizable and tooling can lean on it.
+
+```
+<primitive-name>
+═══════════════════════════════════════
+Type: <agent | skill | rule | hook | etc.>
+Mode: <freeform | plan mode | sequential pipeline | agent-dispatched | etc.>
+Scope: "<one-line scope statement in quotes>"
+
+INPUT: <file path / user prompt / artifact / null>
+
+<PHASE-1-NAME>
+  ▸ <step 1>
+  ▸ <step 2>
+  ▸ <step 3>
+
+<PHASE-2-NAME>
+  ▸ <step 1>
+  ▸ if <condition>: <branch>
+  ▸ else: <branch>
+
+<PHASE-3-NAME>
+  ▸ <step 1>
+
+CLOSE
+  ▸ <final actions, e.g., render artifact inline>
+  ▸ <user signoff if applicable>
+  ▸ <persist to file if applicable>
+
+OUTPUT: <file path / artifact location>
+```
+
+**Conventions:**
+- ALL CAPS for phase names
+- `▸` (U+25B8) bullet for steps
+- `═══` (U+2550) double-rule under primitive name
+- `Type` / `Mode` / `Scope` triplet header directly under the double-rule
+- `INPUT` and `OUTPUT` are separate sentinel steps, not inside any phase
+- Branching within a phase uses inline `if X: … else: …` bullets (no separate "seam" blocks)
+- `CLOSE` is the conventional final phase for inline-render + signoff + persist patterns
+
+Use wherever step-based planning is expressed: skill / agent SOPs, ad-hoc plans, brainstorm output (`~/.claude/plans/<slug>.md`), executable plans (`.cadre/plans/<slug>.md`).
+
 ### Working with me
 
 **Calibration.** Target ~5/10 on the yanking scale. 10 is a giant structured recommendation with ranked options; 3 is terse one-line answers; 5 is engaged without being prescriptive — register calibration is classical (Halliday's field/tenor/mode, *Language as Social Semiotic*, 1978) and response-length control is a standard prompt-engineering lever (see Anthropic's prompting guide for an adjacent framing).
