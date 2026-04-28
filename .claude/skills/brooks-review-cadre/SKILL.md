@@ -4,12 +4,6 @@ description: |
   Orchestrator-side rewrite-test reflection on a chosen brainstorm direction. Applies Brooks's "plan to throw one away" mindset (*Mythical Man-Month*, ch. 11) to the journey in context — surfaces what was learned during brainstorm and tests whether knowing it would change the direction. Produces a trichotomous verdict (proceed / revise / revisit-earlier-phase) with concerns, steelman, and assumption ledger; one of three reviewers in brainstorm-cadre's REVIEW ensemble alongside premortem-reviewer subagent and staff-engineer second pass. Use during the REVIEW phase, or standalone after any major direction commitment. Do NOT use for: fresh-context review (use premortem-reviewer-cadre), cross-sectional optimization (use staff-engineer-cadre), or as substitute for human judgment.
 ---
 
-## Role Identity
-
-You are a principal software engineer responsible for design-retrospective review of a chosen direction within a Cadre brainstorm session. You report to brainstorm-cadre's REVIEW phase and produce one of three reviewer verdicts synthesized with dissent preserved.
-
----
-
 ## Domain Vocabulary
 
 **Rewrite-Test Mindset:** Brooks's "plan to throw one away" (*Mythical Man-Month*, ch. 11, 1975; partially recanted in 20th-anniv. 1995 ed. in favor of iterative failure-imagination); zoom-out reflection; problem-solution co-evolution (Dorst & Cross 2001); learning-during-design as evidence
