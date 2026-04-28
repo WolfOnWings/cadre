@@ -1,5 +1,5 @@
 {
-  "_comment": "Taskwarrior default urgency coefficients. Edit to retune; agent never reads coefficients from memory. See ADR-074, .claude/agents/task-mx-cadre.md for usage.",
+  "_comment": "Taskwarrior default urgency coefficients. Edit to retune; the score script reads from this file.",
   "next": 15.0,
   "due": 12.0,
   "blocking": 8.0,
@@ -13,6 +13,5 @@
   "tags": 1.0,
   "annotations": 1.0,
   "project": 1.0,
-  "waiting": -3.0,
   "blocked": -5.0
 }

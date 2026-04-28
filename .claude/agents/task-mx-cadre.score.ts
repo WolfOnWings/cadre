@@ -1,23 +1,21 @@
 #!/usr/bin/env bun
 // Cadre script: task-mx-cadre.score
-// Invoked by: task-mx-cadre subagent (steady-state) or orchestrator (--render-only / --migrate-dry-run)
+// Invoked by: task-mx-cadre skill (orchestrator-side).
 //
 // Usage:
 //   bun .claude/agents/task-mx-cadre.score.ts --render-only
-//     Read Detail section + inbox/*; emit ranked JSON + rendered Index. No file mutation.
+//     Read Detail section + inbox/*; emit ranked JSON + rendered markdown. No file mutation.
 //
-//   bun .claude/agents/task-mx-cadre.score.ts --integrate <shard-path>
-//     Read existing Detail + the named shard; validate cycle-free; merge entry; regenerate Index;
-//     atomic-write .cadre/todos.md. Returns {ok, reason} JSON.
-//
-//   bun .claude/agents/task-mx-cadre.score.ts --migrate-dry-run
-//     Read existing .cadre/todos.md (assumed legacy/no-frontmatter); emit inferred frontmatter
-//     per entry as a structured diff to stdout. NO file mutation.
+//   bun .claude/agents/task-mx-cadre.score.ts --integrate
+//     Read existing Detail + ALL inbox shards. Validate cycle-free (cycles → quarantine
+//     implicated shards to inbox/.rejected/). Archive DONE entries to archive/<YYYY-MM>.md
+//     and strip from Detail. Atomic-write .cadre/todos.md. Delete consumed shards.
+//     Returns {ok, reason, warnings?} JSON.
 //
 // Algorithms:
 //   - Polynomial scoring: urgency = Σ w_i · term_i(entry), Taskwarrior coefficients in
 //     .cadre/task-mx/weights.json
-//   - Kahn topological sort with cycle detection (refuses on cycle, returns the cycle path)
+//   - Kahn topological sort with cycle detection (cycle → reject implicated shards)
 //   - Critical-path-length DP over the unblocked DAG for ready-set boost
 //   - Three-section Index render: ## Ready / ## Blocked / ## In Progress (markdown tables)
 //
@@ -31,6 +29,7 @@ import {
   unlinkSync,
   renameSync,
   statSync,
+  mkdirSync,
 } from "node:fs";
 import { join } from "node:path";
 
@@ -38,7 +37,7 @@ const TODOS_PATH = ".cadre/todos.md";
 const INBOX_DIR = ".cadre/task-mx/inbox";
 const WEIGHTS_PATH = ".cadre/task-mx/weights.json";
 
-type Status = "TODO" | "DOING" | "DONE" | "DEFERRED" | "SUPERSEDED";
+type Status = "TODO" | "DOING" | "DONE";
 type Priority = "H" | "M" | "L" | null;
 
 interface Entry {
@@ -76,7 +75,6 @@ interface Weights {
   tags: number;
   annotations: number;
   project: number;
-  waiting: number;
   blocked: number;
 }
 
@@ -95,7 +93,8 @@ const FRONTMATTER_RE = /^---\s*\n([\s\S]*?)\n---\s*(?:\n|$)/m;
 
 function parseYaml(block: string): Record<string, unknown> {
   const out: Record<string, unknown> = {};
-  for (const line of block.split("\n")) {
+  for (const rawLine of block.split("\n")) {
+    const line = rawLine.replace(/\r$/, ""); // tolerate CRLF line endings (Windows)
     const m = line.match(/^(\w+):\s*(.*)$/);
     if (!m) continue;
     const [, key, rawVal] = m;
@@ -224,7 +223,7 @@ function buildDag(entries: Entry[]): DagResult {
     for (const b of e.blockers) {
       if (!ids.has(b)) continue; // orphan blocker; surfaced by self-critique watchlist
       const blocker = entries.find((x) => x.id === b)!;
-      if (blocker.status === "DONE" || blocker.status === "SUPERSEDED") continue; // resolved
+      if (blocker.status === "DONE") continue; // resolved
       incoming.get(e.id)!.add(b);
       outgoing.get(b)!.add(e.id);
     }
@@ -346,7 +345,6 @@ function scoreEntry(e: Entry, w: Weights, isBlocked: boolean, cpBoost: number): 
   if (e.created) terms.age = w.age * ageTerm(e.created, w);
   if (e.tags.length > 0) terms.tags = w.tags;
   if (e.project) terms.project = w.project;
-  if (e.status === "DEFERRED") terms.waiting = w.waiting;
   if (isBlocked) terms.blocked = w.blocked;
   if (cpBoost > 0) terms.critical_path = cpBoost; // boost = number of downstream blockees on the critical path
   const urgency = Object.values(terms).reduce((a, b) => a + b, 0);
@@ -375,9 +373,9 @@ function renderTable(rows: ScoredEntry[], blockerCol: "blocks" | "blocked-by"): 
 }
 
 function renderIndex(scored: ScoredEntry[]): string {
-  const ready = scored.filter((e) => !e.isBlocked && e.status !== "DOING" && e.status !== "DONE" && e.status !== "SUPERSEDED");
+  const ready = scored.filter((e) => !e.isBlocked && e.status === "TODO");
   ready.sort((a, b) => b.urgency - a.urgency);
-  const blocked = scored.filter((e) => e.isBlocked && e.status !== "DONE" && e.status !== "SUPERSEDED");
+  const blocked = scored.filter((e) => e.isBlocked && e.status === "TODO");
   blocked.sort((a, b) => b.urgency - a.urgency);
   const inProgress = scored.filter((e) => e.status === "DOING");
   inProgress.sort((a, b) => b.urgency - a.urgency);
@@ -479,72 +477,84 @@ function atomicWrite(path: string, content: string): void {
   }
 }
 
-// ---------- Migration dry-run (heuristic frontmatter inference for legacy entries) ----------
+// ---------- Archive routing (DONE entries → archive/<YYYY-MM>.md) ----------
 
-interface LegacyEntry {
-  id: number;
-  title: string;
-  rawProse: string;
-  inferredFrontmatter: Partial<Entry> & { ambiguous: string[] };
+const ARCHIVE_DIR = ".cadre/task-mx/archive";
+const REJECTED_DIR = ".cadre/task-mx/inbox/.rejected";
+
+function archiveDoneEntries(doneEntries: Entry[]): number {
+  if (doneEntries.length === 0) return 0;
+  if (!existsSync(ARCHIVE_DIR)) mkdirSync(ARCHIVE_DIR, { recursive: true });
+  const byMonth = new Map<string, string[]>();
+  for (const e of doneEntries) {
+    const monthKey = (e.closed ?? new Date().toISOString().slice(0, 10)).slice(0, 7);
+    const block = renderArchiveEntry(e);
+    if (!byMonth.has(monthKey)) byMonth.set(monthKey, []);
+    byMonth.get(monthKey)!.push(block);
+  }
+  for (const [month, blocks] of byMonth) {
+    const path = join(ARCHIVE_DIR, `${month}.md`);
+    const existing = existsSync(path) ? readFileSync(path, "utf-8") : `# Archive ${month}\n\n`;
+    const next = existing.replace(/\s*$/, "\n") + blocks.join("\n") + "\n";
+    writeFileSync(path, next, "utf-8");
+  }
+  return doneEntries.length;
 }
 
-function readLegacyTodosForMigration(): LegacyEntry[] {
-  if (!existsSync(TODOS_PATH)) return [];
-  const raw = readFileSync(TODOS_PATH, "utf-8");
-  const headingRe = /^## (\d+)\.\s+(.*)$/gm;
-  const matches = [...raw.matchAll(headingRe)];
-  const entries: LegacyEntry[] = [];
-  for (let i = 0; i < matches.length; i++) {
-    const m = matches[i];
-    const start = m.index!;
-    const end = i + 1 < matches.length ? matches[i + 1].index! : raw.length;
-    const id = parseInt(m[1], 10);
-    const title = m[2].trim();
-    const rawProse = raw.slice(start, end);
+function renderArchiveEntry(e: Entry): string {
+  return [
+    `## ${e.id}. ${e.title}`,
+    "",
+    renderEntryFrontmatter(e),
+    "",
+    e.body.replace(/\n?<!-- urgency:[^>]*-->\n?/g, "").trim(),
+    "",
+  ].join("\n");
+}
 
-    // Skip if already has frontmatter (re-running migration is a no-op for new-format entries).
-    if (rawProse.match(FRONTMATTER_RE)) continue;
+// ---------- Cycle quarantine ----------
 
-    // Heuristic inference.
-    const inferred: Partial<Entry> & { ambiguous: string[] } = {
-      ambiguous: [],
-    };
-
-    // Status detection: catch both "DONE (date)" and "DONE — modifier (date)" variants.
-    // Order matters: SUPERSEDED takes precedence over DONE.
-    const statusSupersededM = rawProse.match(/\*\*Status:\s*(?:SUPERSEDED\s*\((\d{4}-\d{2}-\d{2})\)|DONE\s+[—-]\s*superseded\s*\((\d{4}-\d{2}-\d{2})\))/i);
-    const statusDoneM = rawProse.match(/\*\*Status:\s*DONE(?:\s+[—-]\s*[\w-]+)?\s*\((\d{4}-\d{2}-\d{2})\)/i);
-    const statusDeferredM = rawProse.match(/\*\*Status:\s*DEFERRED\s*\((\d{4}-\d{2}-\d{2})\)/i);
-
-    if (statusSupersededM) {
-      inferred.status = "SUPERSEDED";
-      inferred.closed = statusSupersededM[1] ?? statusSupersededM[2];
-    } else if (statusDoneM) {
-      inferred.status = "DONE";
-      inferred.closed = statusDoneM[1];
-    } else if (statusDeferredM) {
-      inferred.status = "DEFERRED";
-      inferred.closed = statusDeferredM[1];
-    } else {
-      inferred.status = "TODO";
-    }
-
-    inferred.id = id;
-    inferred.title = title;
-    inferred.priority = null; inferred.ambiguous.push("priority");
-    inferred.due = null;
-    inferred.scheduled = null;
-    inferred.blockers = []; if (rawProse.match(/Open dependencies:/i)) inferred.ambiguous.push("blockers");
-    inferred.tags = [];
-    inferred.project = "cadre";
-    inferred.impact = null; inferred.ambiguous.push("impact");
-    inferred.effort = null; inferred.ambiguous.push("effort");
-    inferred.created = null; inferred.ambiguous.push("created");
-    inferred.updated = "2026-04-27";
-
-    entries.push({ id, title, rawProse, inferredFrontmatter: inferred });
+function rejectShards(shardPaths: string[], reason: string): void {
+  if (shardPaths.length === 0) return;
+  if (!existsSync(REJECTED_DIR)) mkdirSync(REJECTED_DIR, { recursive: true });
+  const ts = new Date().toISOString();
+  for (const src of shardPaths) {
+    const name = src.split(/[\\/]/).pop()!;
+    const dest = join(REJECTED_DIR, name);
+    const original = readFileSync(src, "utf-8");
+    const header = `# REJECTED: ${reason} @ ${ts}\n\n`;
+    writeFileSync(dest, header + original, "utf-8");
+    unlinkSync(src);
   }
-  return entries;
+}
+
+// ---------- Soft audit (warnings, non-blocking) ----------
+
+interface AuditWarning {
+  rule: "duplicate-title" | "orphan-blocker";
+  detail: string;
+}
+
+function auditEntries(entries: Entry[]): AuditWarning[] {
+  const warnings: AuditWarning[] = [];
+  const ids = new Set(entries.map((e) => e.id));
+  const titleMap = new Map<string, number[]>();
+  for (const e of entries) {
+    const key = e.title.trim().toLowerCase();
+    if (!titleMap.has(key)) titleMap.set(key, []);
+    titleMap.get(key)!.push(e.id);
+    for (const b of e.blockers) {
+      if (!ids.has(b)) {
+        warnings.push({ rule: "orphan-blocker", detail: `#${e.id} → #${b} (no such entry)` });
+      }
+    }
+  }
+  for (const [title, dupIds] of titleMap) {
+    if (dupIds.length > 1) {
+      warnings.push({ rule: "duplicate-title", detail: `${dupIds.map((n) => `#${n}`).join(", ")}: "${title}"` });
+    }
+  }
+  return warnings;
 }
 
 // ---------- CLI ----------
@@ -552,97 +562,100 @@ function readLegacyTodosForMigration(): LegacyEntry[] {
 const args = process.argv.slice(2);
 const cmd = args[0];
 
-if (!cmd) {
-  console.error(JSON.stringify({ ok: false, reason: "missing command (--render-only | --integrate <shard> | --migrate-dry-run)" }));
+if (cmd !== "--render-only" && cmd !== "--integrate") {
+  console.error(JSON.stringify({ ok: false, reason: "missing or unknown command (--render-only | --integrate)" }));
   process.exit(1);
 }
 
-if (cmd === "--migrate-dry-run") {
-  const legacy = readLegacyTodosForMigration();
+const weights = loadWeights();
+const detailEntries = readDetailEntries();
+const shardEntries = readInboxShards();
+
+// Merge: shard entries with same id replace detail entries; otherwise append.
+const byId = new Map<number, Entry>();
+for (const e of detailEntries) byId.set(e.id, e);
+for (const e of shardEntries) byId.set(e.id, e);
+const all = [...byId.values()];
+
+const dag = buildDag(all);
+
+if (dag.cycles && dag.cycles.length > 0) {
+  const cyclePath = dag.cycles[0];
+  const cycleIds = new Set(cyclePath);
+  const cycleStr = cyclePath.map((n) => `#${n}`).join(" → ");
+  // On --integrate, quarantine implicated shards. On --render-only, just report.
+  if (cmd === "--integrate") {
+    const implicatedShards = shardEntries
+      .filter((e) => cycleIds.has(e.id) && e.shardPath)
+      .map((e) => e.shardPath!);
+    rejectShards(implicatedShards, `cycle ${cycleStr}`);
+  }
   const result = {
-    ok: true,
-    mode: "migrate-dry-run",
-    count: legacy.length,
-    entries: legacy.map((l) => ({
-      id: l.id,
-      title: l.title,
-      inferred_frontmatter: l.inferredFrontmatter,
-      ambiguous_fields: l.inferredFrontmatter.ambiguous,
-    })),
+    ok: false,
+    reason: `cycle detected: ${cycleStr}${cmd === "--integrate" ? "; implicated shards quarantined" : ""}`,
+    cycles: dag.cycles,
   };
   console.log(JSON.stringify(result, null, 2));
-  process.exit(0);
+  process.exit(2);
 }
 
-if (cmd === "--render-only" || cmd === "--integrate") {
-  const weights = loadWeights();
-  const detailEntries = readDetailEntries();
-  const shardEntries = cmd === "--integrate" && args[1] ? readSingleShard(args[1]) : readInboxShards();
+const warnings = auditEntries(all);
+const blockedSet = new Set(dag.blocked);
+const scored = all.map((e) =>
+  scoreEntry(e, weights, blockedSet.has(e.id), dag.criticalPathLen.get(e.id) ?? 0),
+);
 
-  // Merge: shard entries with same id replace detail entries; otherwise append.
-  const byId = new Map<number, Entry>();
-  for (const e of detailEntries) byId.set(e.id, e);
-  for (const e of shardEntries) byId.set(e.id, e);
-  const all = [...byId.values()];
-
-  const dag = buildDag(all);
-
-  if (dag.cycles && dag.cycles.length > 0) {
-    const result = {
-      ok: false,
-      reason: `cycle detected: ${dag.cycles[0].map((n) => `#${n}`).join(" → ")}`,
-      cycles: dag.cycles,
-    };
-    console.log(JSON.stringify(result, null, 2));
-    process.exit(2);
-  }
-
-  const blockedSet = new Set(dag.blocked);
-  const scored = all.map((e) =>
-    scoreEntry(e, weights, blockedSet.has(e.id), dag.criticalPathLen.get(e.id) ?? 0),
-  );
-
+if (cmd === "--render-only") {
   const indexMd = renderIndex(scored);
-  const detailMd = renderDetail(scored);
+  const detailMd = renderDetail(scored.filter((s) => s.status !== "DONE"));
   const fullMd = indexMd + "\n" + detailMd;
-
-  if (cmd === "--render-only") {
-    const result = {
-      ok: true,
-      mode: "render-only",
-      ready: scored.filter((s) => !s.isBlocked && s.status !== "DOING" && s.status !== "DONE" && s.status !== "SUPERSEDED").length,
-      blocked: scored.filter((s) => s.isBlocked && s.status !== "DONE" && s.status !== "SUPERSEDED").length,
-      in_progress: scored.filter((s) => s.status === "DOING").length,
-      total: scored.length,
-      rendered: fullMd,
-    };
-    console.log(JSON.stringify(result, null, 2));
-    process.exit(0);
-  }
-
-  // --integrate: atomic write
-  atomicWrite(TODOS_PATH, fullMd);
   const result = {
     ok: true,
-    mode: "integrate",
-    ready: scored.filter((s) => !s.isBlocked && s.status !== "DOING" && s.status !== "DONE" && s.status !== "SUPERSEDED").length,
-    blocked: scored.filter((s) => s.isBlocked && s.status !== "DONE" && s.status !== "SUPERSEDED").length,
+    mode: "render-only",
+    ready: scored.filter((s) => !s.isBlocked && s.status === "TODO").length,
+    blocked: scored.filter((s) => s.isBlocked && s.status === "TODO").length,
     in_progress: scored.filter((s) => s.status === "DOING").length,
     total: scored.length,
+    warnings,
+    rendered: fullMd,
   };
   console.log(JSON.stringify(result, null, 2));
   process.exit(0);
 }
 
-console.error(JSON.stringify({ ok: false, reason: `unknown command: ${cmd}` }));
-process.exit(1);
+// --integrate: archive DONE → strip from board → atomic-write → cleanup shards
+const doneEntries = all.filter((e) => e.status === "DONE");
+const activeEntries = scored.filter((s) => s.status !== "DONE");
+const archivedCount = archiveDoneEntries(doneEntries);
 
-function readSingleShard(path: string): Entry[] {
-  if (!existsSync(path)) return [];
-  const raw = readFileSync(path, "utf-8");
-  const fmMatch = raw.match(FRONTMATTER_RE);
-  if (!fmMatch) return [];
-  const body = raw.slice(fmMatch[0].length).trim();
-  const e = parseEntry(fmMatch[1], body, "shard", path);
-  return e ? [e] : [];
+const indexMd = renderIndex(activeEntries);
+const detailMd = renderDetail(activeEntries);
+const fullMd = indexMd + "\n" + detailMd;
+
+atomicWrite(TODOS_PATH, fullMd);
+
+// Cleanup consumed shards.
+let consumedCount = 0;
+for (const e of shardEntries) {
+  if (e.shardPath && existsSync(e.shardPath)) {
+    try { unlinkSync(e.shardPath); consumedCount++; } catch {}
+  }
 }
+
+const ready = activeEntries.filter((s) => !s.isBlocked && s.status === "TODO").length;
+const blocked = activeEntries.filter((s) => s.isBlocked && s.status === "TODO").length;
+const inProgress = activeEntries.filter((s) => s.status === "DOING").length;
+const warnSummary = warnings.length > 0 ? `; warnings=${warnings.length}` : "";
+const result = {
+  ok: true,
+  mode: "integrate",
+  reason: `integrated ${consumedCount} shard${consumedCount === 1 ? "" : "s"}; ready=${ready}, blocked=${blocked}, in-progress=${inProgress}, archived=${archivedCount}${warnSummary}`,
+  ready,
+  blocked,
+  in_progress: inProgress,
+  archived: archivedCount,
+  total: activeEntries.length,
+  warnings,
+};
+console.log(JSON.stringify(result, null, 2));
+process.exit(0);
