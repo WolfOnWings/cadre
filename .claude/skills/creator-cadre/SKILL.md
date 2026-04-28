@@ -129,10 +129,14 @@ OUTPUT: Verified syntax notes.
 Always read the north star:
 - `Read('.cadre/references/creation-techniques.md')` — research-grounded ranking of the 10 instruction-following techniques. Apply the "Current best practice" synthesis at the end.
 
-For skills and agents (persona-style primitives):
+For skills:
+- `Read('.cadre/references/vocabulary-routing.md')` — Domain Vocabulary construction
+- `Read('.cadre/references/skill-template.md')` — gold-standard skill exemplar (annotated `task-mx-cadre` with rationale per section). Skills do NOT use Role Identity / PRISM persona — that's reserved for agents.
+
+For agents (persona-style primitives):
 - `Read('.cadre/references/persona-science.md')` — Role Identity construction (PRISM)
 - `Read('.cadre/references/vocabulary-routing.md')` — Domain Vocabulary construction
-- `Read('.cadre/references/agent-template.md')` — gold-standard exemplar
+- `Read('.cadre/references/agent-template.md')` — gold-standard agent exemplar
 
 For hooks: `creating-hooks.md` (already read in Step 2) plus `creation-techniques.md` plus live syntax from Step 3 are sufficient.
 
@@ -280,6 +284,7 @@ Why: Explicit paths. Bounded scope. Auditable.
 - `.cadre/references/creating-skills.md` — Cadre patterns for skills.
 - `.cadre/references/creating-agents.md` — Cadre patterns for agents (subagent and teammate modes).
 - `.cadre/references/creating-hooks.md` — Cadre patterns for hooks (TS-on-Bun default; strict runtime verification).
-- `.cadre/references/persona-science.md` — PRISM findings on persona effectiveness.
+- `.cadre/references/persona-science.md` — PRISM findings on persona effectiveness (agents).
 - `.cadre/references/vocabulary-routing.md` — Vocabulary mechanics, 15-year practitioner test, sub-domain clustering, vocabulary effectiveness test.
+- `.cadre/references/skill-template.md` — Annotated gold-standard skill example (`task-mx-cadre` worked example with per-section rationale).
 - `.cadre/references/agent-template.md` — Annotated gold-standard agent example.
