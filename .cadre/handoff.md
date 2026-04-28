@@ -1,43 +1,33 @@
-# HANDOFF
-
-Active session log. Most-recent session lives here; prior session entries archived under `.cadre/handoffs/<ISO-date>.md`. Each entry format:
-
-- **Narrative** — prose walkthrough so a fresh instance can reconstruct what happened and why.
-- **Decisions** — condensed bulleted list of architectural/tactical decisions made this session, with cross-references into `.cadre/logs/ADR/decision-log.md` for the full record.
-- **Active Items** — what's outstanding and what the next session should expect.
-- **Changes** — files touched/created this session.
-
----
-
-## 2026-04-27 — handoff-mx post-synthesis injection (TODO #6)
+## 2026-04-28 — frontmatter shard fill-in complete; CI task pivot pending
 
 ### Narrative
 
-The session opened with the second live-fire of the handoff-mx pipeline. The synthesizer dispatched cleanly, but the orchestrator did not read the fresh handoff.md autonomously — the user had to prompt "you read the handoff?" and then challenge "Why didn't you read the handoff on your own?" This named the injection gap precisely: the prime hook's `additionalContext` fires only at session start, before synthesis; a post-synthesis injection required a separate surface hook triggered on the orchestrator's next user-prompt turn.
+The session opened with the standard handoff-mx integration pass, consuming prior-session events. The user asked to see the todo board, which surfaced the outstanding open item: 25 active TODO entries carried explicit-null `priority`/`impact`/`effort`/`created` fields from the migration heuristic, making scoring fictional. The orchestrator ran a plan to close this gap: a one-off Bun script (`shard-fillin.ts`) read the live board, applied best-guess estimates per entry, and emitted 24 inbox shards (TODO #29 was already DEFERRED, so excluded). The user approved all estimates at once ("yes on all. best guess"). The shards were written to `.cadre/task-mx/inbox/`, then `task-mx-cadre` integrated all 24 via `score.ts --integrate`, regenerated the board's ranked Index, and confirmed inbox clear. The frontmatter fill-in item is resolved; scoring is now grounded in real axis values.
 
-The user directed work against this gap as TODO #6 from the sprint task list, invoking the creator skill to draft the solution. Verification confirmed the correct CC hook event (`UserPromptSubmit`) and that the synthesizer's existing file footprint could carry a flag file (`handoff-fresh.flag`) without any ADR changes. The surface hook (`handoff-mx-surface-cadre.ts`) was built on the canonical CC `UserPromptSubmit` pattern: the synthesizer writes `handoff-fresh.flag` on completion; the surface hook detects the flag, reads `handoff.md`, and injects its content as L1-trust `additionalContext` on the orchestrator's next prompt turn. The prime hook was updated to delete the flag and handle the flag lifecycle correctly. Three smoke-test paths (no flag, flag + handoff present, flag + missing handoff) all passed. The feature shipped as PR #21, merged same session. The "shouldn't have to tell you" signal is now closed by a deterministic L1 mechanism rather than a soft instruction.
+At session close, the user pivoted toward CI work ("no. let's work on the CI task. What's the story behind it"), but the session ended before any CI work began. TODO #22 (Base CI workflow) is the named next-up for the following session.
 
-No new ADRs were written. The implementation is an optimization against ADR-073's boundary-synthesizer architecture — dispatch mechanism unchanged; only the post-synthesis injection path is new. An ADR-068 ref surfaced in events but carried no new decision — that reversal was recorded in the prior session.
+No architectural decisions or ADR entries this session. The board-curator pattern (ADR-074) held without modification; the fill-in run was pure data enrichment, not a structural change.
 
 ### Decisions
 
-No new ADRs this session. Changes are implementation against pre-existing architecture:
-
-- **TODO #6 closed — post-synthesis handoff injection** — `handoff-mx-surface-cadre.ts` (`UserPromptSubmit` hook) + `handoff-fresh.flag` sentinel closes the injection gap identified in ADR-073's implementation. Synthesizer writes flag on completion; surface hook injects `handoff.md` as `additionalContext` on the next orchestrator prompt turn. No ADR warranted — optimization within ADR-073's declared boundary.
+- No new ADRs. The frontmatter fill-in is an operational data-quality pass, not an architectural decision. ADR-074's single-writer / inbox-shard discipline governed the mechanics.
 
 ### Active Items
 
-- **TODO #27 — taskboard-mx agent (feat/taskboard-cadre branch)** — user's stated next intent from prior sessions: run plan-cadre on the taskboard-mx agent design. Verify branch state before invoking plan-cadre.
-- **TODO #30 — Break out CLAUDE.md into `.claude/` primitives** — `.claude/rules/` reference doc deferred here; gating prerequisite for the CLAUDE.md breakout. TODO #29 closed; TODO #30 open.
-- **TODO #31 — events-log filtering / sampling** — logger filters Read/Glob/Grep at write-time (Sprint A); monitor synthesis time across next few sessions; revisit if it climbs past 3 minutes.
-- **TODO #14 — Three-review architecture detail** — untouched; awaits CI + stranger-swarm + risk-detection layers.
-- **TODO #22 — Base CI workflow** — untouched; gating prerequisite for auto-merge mechanics.
+- **TODO #22 — Base CI workflow** — user-directed next-up at session close; no work started yet. Next session: surface the current CI task entry and plan implementation.
+- **TODO #14 — Three-review architecture detail** — untouched; awaits CI + stranger-swarm + risk-detection layers; naturally unblocked once TODO #22 lands.
+- **TODO #27 — taskboard-mx agent superseded** — still open; needs verification and close/relabel.
+- **TODO #30 — Break out CLAUDE.md into `.claude/` primitives** — not started.
+- **TODO #31 — events-log filtering / sampling** — logger filters in place; monitor synthesis time across sessions; revisit if past 3 minutes.
 - **TODO #61 / ADR-061 — researcher-cadre format migration** (skill → agent) — untouched.
+- **Open: task-mx-cadre prime hook** — prime hook (session-start board injection) deferred per ADR-074; unbuilt.
+- **Signal: subagent stall pattern** — general-purpose subagent stalled at 50+ tool calls in prior session on a mechanical shard task. Worth noting: this session's fill-in used the orchestrator-direct path (shard generation + `task-mx-cadre` integration subagent) without incident. Consider formalizing "orchestrator generates shards; task-mx-cadre integrates" as the canonical path for bulk board mutations.
 
 ### Changes
 
-- `.claude/hooks/handoff-mx-surface-cadre.ts` — created; `UserPromptSubmit` hook that detects `handoff-fresh.flag` and injects `handoff.md` as `additionalContext`
-- `.claude/hooks/handoff-mx-prime-cadre.ts` — updated to handle `handoff-fresh.flag` lifecycle (write on synthesis completion, delete on next session start)
-- `.claude/agents/handoff-mx-cadre.md` — updated; Cleanup step now includes writing `handoff-fresh.flag` after atomic rename
-- `.claude/settings.json` — updated; `handoff-mx-surface-cadre.ts` registered under `UserPromptSubmit` hooks
-- `.cadre/handoff.md` — replaced with this entry (prior entry archived to `.cadre/handoffs/2026-04-27.md`)
+- `.cadre/task-mx/logs/shard-fillin.ts` — one-off Bun script created; reads todos.md entries, applies frontmatter best-guess overrides, emits 24 shards to inbox
+- `.cadre/task-mx/inbox/` — 24 frontmatter-fill shards generated and subsequently consumed (inbox empty on session close)
+- `.cadre/todos.md` — all 24 active TODOs updated with real priority/impact/effort/created values; board Index regenerated
+- `.cadre/task-mx/archive/2026-04.md` — no new entries (no TODOs closed this session)
+- `.cadre/handoffs/2026-04-27.md` — prior session entry appended (same-day multi-entry)
+- `.cadre/handoff.md` — replaced with this entry
