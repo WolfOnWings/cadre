@@ -165,7 +165,7 @@ OUTPUT: `~/.claude/plans/<slug>.md` written; handoff surfaced.
 The persisted brainstorm artifact at `~/.claude/plans/<slug>.md` follows the canonical step-based-planning format from CLAUDE.md:
 
 ```
-brainstorm-cadre: <slug>
+<slug>
 ═══════════════════════════════════════
 Type: skill
 Mode: freeform conversation
