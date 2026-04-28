@@ -1,6 +1,6 @@
 ---
 name: task-mx-cadre
-description: Mutates the Cadre task board (`.cadre/todos.md`) by composing a frontmatter shard, getting user confirmation, dropping it in the inbox, and invoking `task-mx-cadre.score.ts --integrate`. Use this skill whenever the user wants to add, close, defer, prioritize, status-change, or otherwise modify a todo — phrases like "add to todo board", "add a TODO for", "track this", "log this", "close TODO #N", "mark #N done", "mark #N DOING", "defer #N", "raise #N priority", "lower #N priority", "block #N on #M", "add blocker to #N", "remove blocker from #N", "retitle #N", "tag #N as X". Do NOT use this skill for reading the board (the orchestrator reads `## Ready` directly from `.cadre/todos.md`), for editing the score script / weights / hooks, or for hand-editing `todos.md` (only shards via the script).
+description: Mutates the Cadre task board by composing a frontmatter shard, getting user confirmation in chat, dropping it in `.cadre/task-mx/inbox/`, and invoking `task-mx-cadre.score.ts --integrate`. Use whenever the user wants to add, close, defer, prioritize, or otherwise modify a todo — "add to todo board," "add a TODO for X," "track this," "close TODO #N," "mark #N done/DOING," "defer #N," "raise/lower #N priority," "block #N on #M," "retitle #N." Do NOT use for: reading the board (orchestrator reads `## Ready` directly from `.cadre/todos.md`), editing the score script / weights / hooks, or hand-editing `todos.md` (only shards via the script).
 ---
 
 ## Role Identity
