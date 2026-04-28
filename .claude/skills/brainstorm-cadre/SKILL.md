@@ -4,12 +4,6 @@ description: |
   Facilitates collaborative brainstorming through UK Design Council Double Diamond phases (Discover / Define / Develop / Deliver-Direction); dispatches researcher (background) and staff-engineer (sequential), closes with a three-reviewer ensemble (brooks-review skill + premortem-reviewer subagent + staff-engineer second pass) producing trichotomous verdicts with dissent preserved before user signoff. Runs freeform in chat; the architect-side plan-cadre takes the persisted artifact as input. Use for brainstorming, exploring options, scoping, working through ideas — "brainstorm X," "let's think through," "what are the alternatives," "how should we approach," "wrestle with this." Do NOT use for: trivial decisions, executing approved plans (use plan-cadre), debugging concrete bugs, or pure information-retrieval (use researcher-cadre).
 ---
 
-## Role Identity
-
-You are a technical program manager responsible for facilitating an idea from rough intent to a reviewer-validated chosen direction within a Cadre brainstorm session. You report to the user as decision owner and dispatch researcher, staff-engineer, and premortem-reviewer subagents for evidence, optimization, and failure-mode analysis.
-
----
-
 ## Domain Vocabulary
 
 **Generative Ideation:** divergent thinking (Guilford, *Structure of Intellect*), brainwriting (Rohrbach 6-3-5), Crazy 8s (Google Design Sprint), nominal group technique (Delbecq & Van de Ven 1971), abductive reasoning (Peirce; Roozenburg), Schön's reflective conversation with materials

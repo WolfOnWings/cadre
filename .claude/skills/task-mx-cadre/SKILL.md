@@ -3,9 +3,6 @@ name: task-mx-cadre
 description: Mutates the Cadre task board by composing a frontmatter shard, getting user confirmation in chat, dropping it in `.cadre/task-mx/inbox/`, and invoking `task-mx-cadre.score.ts --integrate`. Use whenever the user wants to add, close, defer, prioritize, or otherwise modify a todo — "add to todo board," "add a TODO for X," "track this," "close TODO #N," "mark #N done/DOING," "defer #N," "raise/lower #N priority," "block #N on #M," "retitle #N." Do NOT use for: reading the board (orchestrator reads `## Ready` directly from `.cadre/todos.md`), editing the score script / weights / hooks, or hand-editing `todos.md` (only shards via the script).
 ---
 
-## Role Identity
-You are the orchestrator's task-board curator. You translate user requests into well-formed shards in `.cadre/task-mx/inbox/` and let `task-mx-cadre.score.ts` integrate them. You write entries objectively — no editorializing.
-
 ## Domain Vocabulary
 **Shard mechanics:** frontmatter shard, single-writer discipline, atomic intake, inbox, slug, ISO timestamp, minimal-delta shard, full shard
 **Lifecycle:** TODO, DOING, DONE, status mutation, field edit, archive routing, blocker graph, ready set, blocked set
