@@ -12,8 +12,6 @@ name: product-manager-b2b
 domain: software
 tags: [product-management, PRD, prioritization, discovery, B2B, SaaS, roadmap, metrics]
 created: 2026-03-28
-trust: high
-source: manual
 ---
 ```
 
@@ -21,8 +19,6 @@ source: manual
 > - `name` is kebab-case and matches the filename `product-manager-b2b.md`.
 > - `domain` is the primary category for library organization. This PM works in software.
 > - `tags` include 8 searchable terms. Mix role terms ("product-management"), artifact terms ("PRD"), method terms ("prioritization," "discovery"), and context terms ("B2B," "SaaS").
-> - `trust: high` because this is a hand-crafted reference agent that has been in continous use with few edits.
-> - `source: manual` because a human designed it.
 
 ---
 
