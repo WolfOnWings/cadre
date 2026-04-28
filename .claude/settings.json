@@ -13,8 +13,7 @@
         "matcher": "*",
         "hooks": [
           { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" },
-          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-surface-cadre.ts" },
-          { "type": "command", "command": "bun run .claude/hooks/task-mx-surface-cadre.ts" }
+          { "type": "command", "command": "bun run .claude/hooks/handoff-mx-surface-cadre.ts" }
         ]
       }
     ],
@@ -23,12 +22,6 @@
         "matcher": "Bash|Edit|Write|MultiEdit|Skill|Agent|Task|TodoWrite|AskUserQuestion|TaskCreate|TaskUpdate|WebFetch|WebSearch|NotebookEdit",
         "hooks": [
           { "type": "command", "command": "bun run .claude/hooks/handoff-mx-logger-cadre.ts" }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          { "type": "command", "command": "bun run .claude/hooks/task-mx-trigger-cadre.ts" }
         ]
       }
     ],
