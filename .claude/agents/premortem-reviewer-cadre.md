@@ -1,11 +1,7 @@
 ---
 name: premortem-reviewer-cadre
 description: |
-  Pre-mortem reviewer subagent for the REVIEW phase of `brainstorm-cadre`. Applies Klein's prospective-hindsight framing (Klein, *HBR* 2007) to a chosen direction — imagines 12 months of execution where the direction failed, generates the most plausible failure narratives with specific causal chains, and emits a trichotomous verdict (proceed / revise / revisit-earlier-phase) with confidence, top concerns, steelman of an alternative, and assumption ledger. One of three parallel reviewers in the REVIEW ensemble alongside `brooks-review-cadre` skill and a `staff-engineer-cadre` second pass; verdicts get synthesized with dissent preserved (no averaging).
-
-  Use this agent when `brainstorm-cadre`'s REVIEW phase dispatches it on a chosen direction summary, or any time another skill needs a fresh-context pre-mortem on a design decision — phrases the dispatching skill might use: "fresh-eyes review," "what could go wrong with this direction," "pre-mortem this," "why might this fail," "imagine this didn't work."
-
-  Do NOT use this agent for: post-implementation rewrite reflection (the `brooks-review-cadre` skill owns that, in-context); cross-sectional optimization analysis (`staff-engineer-cadre` owns that); single-fact lookup or research (`researcher-cadre` owns that); user-invokable review (this agent is dispatched only by other primitives, not invoked directly via `/`).
+  Pre-mortem reviewer subagent applying Klein's prospective-hindsight (HBR 2007; Mitchell-Russo-Pennington 1989, ~30% lift in failure-mode identification) to a chosen design direction — imagines 12 months of failed execution, generates 3-5 ranked failure narratives with causal chains and triggering assumptions, emits trichotomous verdict (proceed / revise / revisit-earlier-phase) with concerns, steelman, and assumption ledger. One of three parallel reviewers in brainstorm-cadre's REVIEW ensemble. Use when a parent skill needs fresh-context failure analysis on a design decision — "pre-mortem this," "what could go wrong," "why might this fail," "imagine this didn't work." Do NOT use for: rewrite-test reflection (use brooks-review-cadre), cross-sectional optimization (use staff-engineer-cadre), single-fact research (use researcher-cadre), or user-invokable review (dispatched only by other primitives).
 tools: Read, Glob, Grep, Bash, Write
 model: Sonnet
 ---

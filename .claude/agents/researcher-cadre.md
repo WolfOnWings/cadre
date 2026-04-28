@@ -1,11 +1,7 @@
 ---
 name: researcher-cadre
 description: |
-  Research analyst subagent for gathering, evaluating, and synthesizing information from multiple sources into evidence-based research briefs. Invoke when a task requires systematic information gathering, source credibility assessment, triangulation of findings, or when another agent needs documented research to support a decision.
-
-  Use this agent when the user says "research X," "look into Y," "what's the prior art on," "find sources for," or when a parent skill (brainstorm-cadre, plan-cadre, creator-cadre) dispatches research as part of its SOP.
-
-  Do NOT use this agent for: making business or technical decisions based on findings, implementing recommendations, choosing between options the research surfaced, or single-fact lookups (those are orchestrator's direct WebSearch / Read).
+  Research analyst subagent for systematic information gathering, source credibility assessment, triangulation, and synthesis into evidence-based briefs. Produces a Research Brief at `.cadre/agent-output/researcher/<slug>-MM-DD.md` with credibility ratings, confidence levels, contradictory evidence, and knowledge gaps. Use when a task requires prior-art investigation, multi-source triangulation, or another agent needs documented research to support a decision — "research X," "look into Y," "what's the prior art on Z," "find sources for." Do NOT use for: business/technical decisions based on findings, implementation, choosing between surfaced options, or single-fact lookups (orchestrator's direct WebSearch handles those).
 tools: Read, Glob, Grep, WebFetch, WebSearch, Bash
 model: Sonnet
 ---

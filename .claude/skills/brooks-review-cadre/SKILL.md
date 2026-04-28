@@ -1,19 +1,7 @@
 ---
 name: brooks-review-cadre
 description: |
-  Orchestrator-side rewrite-test reflection on a chosen brainstorm direction. Invoked from brainstorm-cadre's REVIEW phase as one of three parallel reviewers (alongside premortem-reviewer-cadre subagent and a staff-engineer-cadre second pass). Applies Brooks's "plan to throw one away" mindset (*Mythical Man-Month*, ch. 11) to the journey just walked — surfaces what was learned during brainstorm that wasn't known going in, and tests whether knowing it now would change the chosen direction. Produces a trichotomous verdict (proceed / revise / revisit-earlier-phase) with confidence, top concerns, steelman, and assumption ledger.
-
-  Use this skill when brainstorm-cadre's REVIEW phase calls for the orchestrator's own rewrite-reflection verdict — typically invoked in the same turn as the parallel premortem and staff-engineer dispatches. Can also be invoked standalone after any major direction commitment to apply rewrite-test reflection on what was just decided.
-
-  Do NOT use this skill for: fresh-context review (premortem-reviewer-cadre is the fresh-eyes reviewer, dispatched as a subagent); cross-sectional optimization analysis (staff-engineer-cadre); or as a substitute for human judgment — the verdict is one signal among three to be synthesized with dissent preserved.
----
-
-# Brooks Review (Cadre)
-
-This skill primes the orchestrator to perform a rewrite-test reflection on a chosen direction. It runs in-context (not as a subagent) so it can leverage the orchestrator's full memory of the brainstorm journey — the alternatives considered, the framing decisions, the staff-engineer findings, the user's reasoning. That context is the load-bearing input: Brooks's rewrite test is "knowing what I now know," which only works with the journey in scope.
-
-The output is a structured reviewer verdict in the canonical reviewer format, ready for synthesis with the other two reviewers (premortem + staff-engineer).
-
+  Orchestrator-side rewrite-test reflection on a chosen brainstorm direction. Applies Brooks's "plan to throw one away" mindset (*Mythical Man-Month*, ch. 11) to the journey in context — surfaces what was learned during brainstorm and tests whether knowing it would change the direction. Produces a trichotomous verdict (proceed / revise / revisit-earlier-phase) with concerns, steelman, and assumption ledger; one of three reviewers in brainstorm-cadre's REVIEW ensemble alongside premortem-reviewer subagent and staff-engineer second pass. Use during the REVIEW phase, or standalone after any major direction commitment. Do NOT use for: fresh-context review (use premortem-reviewer-cadre), cross-sectional optimization (use staff-engineer-cadre), or as substitute for human judgment.
 ---
 
 ## Role Identity

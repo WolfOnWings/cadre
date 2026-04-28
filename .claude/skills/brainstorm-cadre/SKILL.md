@@ -1,19 +1,7 @@
 ---
 name: brainstorm-cadre
 description: |
-  Primes the orchestrator into facilitator mode for collaborative brainstorming through UK Design Council Double Diamond phases — Discover (problem-space diverge), Define (problem-space converge), Develop (solution-direction diverge), Deliver-Direction (solution-direction converge). Closes with a three-reviewer ensemble (brooks-review skill + premortem-reviewer subagent + staff-engineer second pass) that produces trichotomous verdicts (proceed / revise / revisit-earlier-phase) with dissent preserved before user signoff. Runs freeform in chat (not plan mode); the architect-side skill (plan-cadre) takes the persisted artifact as input.
-
-  Use this skill whenever the user wants to brainstorm, explore, think through, scope out, or generate options for an idea — phrases like "brainstorm X", "let's think through", "explore options", "what are the alternatives", "how should we approach", "let's figure out X", "wrestle with this idea", "grow this into something". The natural next step is /plan-cadre once direction is chosen and signed off.
-
-  Do NOT use this skill for: trivial decisions where the answer is obvious; executing an already-approved plan (use /plan-cadre); debugging concrete bugs; pure information-retrieval (use the researcher-cadre agent directly).
----
-
-# Brainstorm (Cadre)
-
-This skill primes the orchestrator as a brainstorming facilitator. Walks UK Design Council Double Diamond phases (Discover → Define → Develop → Deliver-Direction), dispatches researcher in Discover (background, parallel), staff-engineer at the end of Develop (sequential, wait), and a three-reviewer ensemble at the end of Deliver-Direction (brooks-review skill + premortem-reviewer subagent + staff-engineer second pass). The output is a chosen direction with reviewer-validated confidence, persisted at signoff.
-
-The load-bearing posture: **interrogate with strong candidates, one question at a time.** Bring options from general knowledge, dispatched subagents, and project context. User picks, rejects, or adds. Walk depth-first: drill a branch to leaves, backtrack, drill again. Pure question-mode that leaves all generation to the user is the failure mode this skill prevents.
-
+  Facilitates collaborative brainstorming through UK Design Council Double Diamond phases (Discover / Define / Develop / Deliver-Direction); dispatches researcher (background) and staff-engineer (sequential), closes with a three-reviewer ensemble (brooks-review skill + premortem-reviewer subagent + staff-engineer second pass) producing trichotomous verdicts with dissent preserved before user signoff. Runs freeform in chat; the architect-side plan-cadre takes the persisted artifact as input. Use for brainstorming, exploring options, scoping, working through ideas — "brainstorm X," "let's think through," "what are the alternatives," "how should we approach," "wrestle with this." Do NOT use for: trivial decisions, executing approved plans (use plan-cadre), debugging concrete bugs, or pure information-retrieval (use researcher-cadre).
 ---
 
 ## Role Identity
