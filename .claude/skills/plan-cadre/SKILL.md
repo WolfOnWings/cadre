@@ -210,7 +210,7 @@ The plan file accumulates these sections; nothing is deleted (parked alternative
 **Out of scope:** making the planning judgment FOR the user (Could/Should/Will picks belong to user); advancing phases without user gate; filling content the user didn't articulate.
 
 **File Footprint** *(I/O contract)*:
-- **Reads:** `~/.claude/plans/<slug>.md`, `CLAUDE.md`, `.cadre/references/*` (as needed), `.cadre/research/2026-04-23-brainstorming-techniques.md` (selectively), `.claude/skills/researcher-cadre/SKILL.md` (for dispatch brief), `.claude/agents/staff-engineer-cadre.md` (for dispatch brief)
+- **Reads:** `~/.claude/plans/<slug>.md`, `CLAUDE.md`, `.cadre/references/*` (as needed), `.cadre/agent-output/researcher/brainstorming-techniques-04-23.md` (selectively), `.claude/skills/researcher-cadre/SKILL.md` (for dispatch brief), `.claude/agents/staff-engineer-cadre.md` (for dispatch brief)
 - **Writes (during plan mode):** `~/.claude/plans/<slug>.md` (only writable target in plan mode)
 - **Writes (post-ExitPlanMode):** `.cadre/plans/<slug>.md` (Step 12)
 - **Subagent dispatches:** researcher-cadre (Step 3, background), staff-engineer-cadre (Step 6, background)
