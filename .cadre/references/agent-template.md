@@ -59,17 +59,17 @@ You are a product manager responsible for defining product requirements, priorit
 
 ## Deliverables
 
-All deliverables land under `.cadre/agent-output/product-manager-b2b-output-<ISO>/` (Cadre convention: per-dispatch subfolder named `<agent-name>-output-<ISO>` for clarity and audit trail).
+All deliverables land under `.cadre/agent-output/product-manager-b2b/` (Cadre convention: flat per-agent folder; no per-dispatch wrapper subdir, no ISO timestamp; date suffix on each filename is month-day, mtime tracks the rest).
 
-1. **Product Requirements Document (PRD)** — Markdown at `.cadre/agent-output/product-manager-b2b-output-<ISO>/PRD.md`. Sections: Problem Statement, User Stories, Acceptance Criteria, Success Metrics, Out of Scope, Open Questions. Approximately 500-1500 words depending on feature complexity.
-2. **Prioritized Backlog** — Markdown at `.cadre/agent-output/product-manager-b2b-output-<ISO>/backlog.md`. Ordered list of features/stories with RICE scores, user story format, and acceptance criteria.
-3. **Feature Success Report** — Markdown at `.cadre/agent-output/product-manager-b2b-output-<ISO>/feature-success-report.md`. Sections: Hypothesis, Metrics Observed, Comparison to Targets, Learnings, Next Steps. Approximately 300-800 words.
-4. **Roadmap Update** — Markdown at `.cadre/agent-output/product-manager-b2b-output-<ISO>/roadmap.md`. Now/Next/Later format showing current sprint work, next quarter priorities, and future exploration areas.
-5. **Stakeholder Update** — Markdown at `.cadre/agent-output/product-manager-b2b-output-<ISO>/stakeholder-update.md`. Sections: Shipped This Week, Key Metrics, Blockers, Decisions Needed. Approximately 200-400 words.
+1. **Product Requirements Document (PRD)** — Markdown at `.cadre/agent-output/product-manager-b2b/PRD-<topic>-MM-DD.md`. Sections: Problem Statement, User Stories, Acceptance Criteria, Success Metrics, Out of Scope, Open Questions. Approximately 500-1500 words depending on feature complexity.
+2. **Prioritized Backlog** — Markdown at `.cadre/agent-output/product-manager-b2b/backlog-MM-DD.md`. Ordered list of features/stories with RICE scores, user story format, and acceptance criteria.
+3. **Feature Success Report** — Markdown at `.cadre/agent-output/product-manager-b2b/feature-success-report-<feature>-MM-DD.md`. Sections: Hypothesis, Metrics Observed, Comparison to Targets, Learnings, Next Steps. Approximately 300-800 words.
+4. **Roadmap Update** — Markdown at `.cadre/agent-output/product-manager-b2b/roadmap-MM-DD.md`. Now/Next/Later format showing current sprint work, next quarter priorities, and future exploration areas.
+5. **Stakeholder Update** — Markdown at `.cadre/agent-output/product-manager-b2b/stakeholder-update-MM-DD.md`. Sections: Shipped This Week, Key Metrics, Blockers, Decisions Needed. Approximately 200-400 words.
 
 > **Annotation — Deliverables:**
 > - **Named artifacts:** Not "documents" but "PRD," "Feature Success Report," "Stakeholder Update." Each has a recognizable name.
-> - **Explicit file paths:** Every deliverable has a concrete write location. Per-dispatch subfolder isolates each agent run; ISO timestamp in subfolder name gives a clean audit trail. Files inside the subfolder use natural names; ISO is in the folder, not the filenames.
+> - **Explicit file paths:** Every deliverable has a concrete write location. Flat per-agent folder keeps related artifacts co-located across dispatches; the date suffix (`MM-DD`) on filenames sorts them visually without burying them in per-dispatch wrapper subdirs. No ISO timestamp — Windows tracks mtime, and full ISO in filenames is visual noise.
 > - **Format described:** Sections listed for each artifact. Someone reading this knows what the document contains.
 > - **Length guidance:** Approximate word counts set expectations without being rigid.
 > - **Verifiable:** For each deliverable, you can check: "Does this PRD have a Problem Statement section? Acceptance Criteria? Success Metrics?" If not, it is incomplete.

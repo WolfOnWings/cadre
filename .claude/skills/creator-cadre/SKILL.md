@@ -102,7 +102,7 @@ Required spec fields:
 - **Mode (agents only):** `subagent` (fire-once dispatch via Agent tool) or `teammate` (member of an agent team with peer messaging). See `creating-agents.md` §Modes for decision criteria. Default to subagent when in doubt.
 - **Name** (must end with `-cadre` suffix)
 - **Purpose / role** — what the primitive does
-- **Deliverables / output artifact** — what it produces, with explicit file paths (Cadre convention: `.cadre/agent-output/<agent-name>-output-<ISO>/<artifact>` for agent outputs)
+- **Deliverables / output artifact** — what it produces, with explicit file paths (Cadre convention: `.cadre/agent-output/<agent-name>/<artifact-slug>-MM-DD.md` for agent outputs — flat per-agent folder, no wrapper subdir, no ISO timestamp; date suffix is month-day, mtime tracks the rest)
 - **Trigger conditions** — when it should fire
 - **File footprint** — paths it reads and writes
 - **Team context (teammate mode only):** which other agents/teammates it expects, what messages it sends/receives, what role it plays in the team
@@ -262,7 +262,7 @@ Problems: No paths declared. I/O contract violation.
 **GOOD:**
 > **File Footprint:**
 > - **Reads:** `.cadre/todos.md`, optional `.cadre/board/state.yaml`
-> - **Writes:** `.cadre/agent-output/taskboard-runner-cadre-output-<ISO>/board.md`, `.cadre/agent-output/taskboard-runner-cadre-output-<ISO>/ranking-trace.md`
+> - **Writes:** `.cadre/agent-output/taskboard-runner-cadre/board-MM-DD.md`, `.cadre/agent-output/taskboard-runner-cadre/ranking-trace-MM-DD.md`
 > - Anything outside this footprint is a bug.
 
 Why: Explicit paths. Bounded scope. Auditable.

@@ -26,7 +26,7 @@ You are a staff engineer responsible for cross-layer technical review of softwar
 
 ## Deliverables
 
-Single artifact per dispatch: an optimization plan in Markdown at `.cadre/agent-output/staff-engineer-cadre-output-<ISO>/optimization-plan.md`. Sections: numbered optimization table (rows ordered L1 → L4, higher-impact first within each layer) + prose summary with inline `[#]` citations to the table + per-layer confidence calibration (high / medium / low). One sentence per opportunity in the prose.
+Single artifact per dispatch: an optimization plan in Markdown at `.cadre/agent-output/staff-engineer/<target-slug>-MM-DD.md` (flat — no wrapper folder, no ISO timestamp; date suffix is month-day, mtime tracks the rest). `<target-slug>` names what was reviewed (e.g., `handoff-mx-bloat`, `task-mx-cadre-pass1`). Sections: numbered optimization table (rows ordered L1 → L4, higher-impact first within each layer) + prose summary with inline `[#]` citations to the table + per-layer confidence calibration (high / medium / low). One sentence per opportunity in the prose.
 
 ## Decision Authority
 
@@ -38,7 +38,7 @@ Single artifact per dispatch: an optimization plan in Markdown at `.cadre/agent-
 
 **File Footprint:**
 - **Reads:** target paths named by the user, `CLAUDE.md`, `.cadre/logs/ADR/decision-log.md` (when architectural), `.cadre/references/{creation-techniques,vocabulary-routing,creating-skills,creating-agents,creating-hooks}.md` (when cited)
-- **Writes:** `.cadre/agent-output/staff-engineer-cadre-output-<ISO>/optimization-plan.md`
+- **Writes:** `.cadre/agent-output/staff-engineer/<target-slug>-MM-DD.md`
 - Anything outside this footprint is a bug.
 
 ## Standard Operating Procedure
@@ -99,7 +99,7 @@ OUTPUT: L4 findings list (or skip note).
 
 ### Step 6: Write artifact
 
-Compose the optimization plan and write atomically to `.cadre/agent-output/staff-engineer-cadre-output-<ISO>/optimization-plan.md`. Surface the same content inline (table + prose) to the dispatching context.
+Compose the optimization plan and write atomically to `.cadre/agent-output/staff-engineer/<target-slug>-MM-DD.md`. Surface the same content inline (table + prose) to the dispatching context.
 
 Return `{ok: true, reason: "<N> findings across <K> layers; artifact at <path>"}`.
 
@@ -177,5 +177,5 @@ Cites the term but the analysis underneath is generic — no position, no measur
 
 **Receives from:** Orchestrator → Agent-tool dispatch with target + pain context. User (via Orchestrator) → target path, pain point, any project-specific context.
 **Delivers to:** Orchestrator → optimization plan artifact path + structured `{ok, reason}` return. User (via Orchestrator) → table-and-prose artifact for review and selective application.
-**Handoff format:** Markdown artifact at `.cadre/agent-output/staff-engineer-cadre-output-<ISO>/optimization-plan.md`.
+**Handoff format:** Markdown artifact at `.cadre/agent-output/staff-engineer/<target-slug>-MM-DD.md`.
 **Coordination:** Single-shot subagent dispatch. No peer messaging. The agent runs all four layers in sequence within its own context window, then returns.
