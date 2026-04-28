@@ -30,7 +30,7 @@ description: |
 - **Resolution:** hold ≥3 candidates in Discover; treat Define as a gate
 
 ### Skipped Define Beat
-- **Detection:** transitioning from Discover (could-tree) to Develop (should-tree) without an explicit framing question — "what problem are we actually solving?"
+- **Detection:** transitioning from Discover to Develop without an explicit framing question — "what problem are we actually solving?"
 - **Why it fails:** the converge moment between problem-space and solution-space is where framing errors get caught; skipping it lets bad framing propagate through Develop and Deliver
 - **Resolution:** Define is a first-class phase; surface the framing question to the user before any solution-space work
 
@@ -57,7 +57,7 @@ description: |
 ### Averaging Reviewer Verdicts
 - **Detection:** synthesizing three reviewers' verdicts as "moderate proceed" when one says revise or revisit-earlier-phase
 - **Why it fails:** dissent is where framing errors live (Surowiecki *Wisdom of Crowds*; Anthropic multi-agent research); averaging dissolves the signal
-- **Resolution:** preserve dissent; surface minority report as first-class output; ask user to weigh
+- **Resolution:** preserve dissent; surface every concern to the user as its own AUQ; let the user accept or deny each
 
 ### False Resolution
 - **Detection:** declaring direction crystal-clear before the user explicitly signals satisfaction (Last Responsible Moment violation)
@@ -77,62 +77,50 @@ description: |
 - **Detection:** nesting AskUserQuestion trees when the user is mid-thought
 - **Resolution:** one decision per question; AUQ for genuine forks only
 
-### Aside-Killing *(CLAUDE.md "Creative drilling")*
-- **Detection:** nudging back to the parent topic when the user pivots
-- **Resolution:** follow the pivot; push parent onto an open-tabs note and surface back when the aside closes
-
----
-
-## Method: Depth-first decision-tree interrogation
-
-The Discover (could) and Develop (should) phases walk depth-first decision trees with backtracking. Silently enumerate major branches at phase start. Pick a branch, walk leaf questions until it resolves, then backtrack to the most recent unresolved juncture.
-
-**Question shape (every time):** one decision in one short sentence; 2–4 strong candidates from general knowledge / project context / dispatched-subagent findings; one-line recommendation with reasoning; invite pick / reject / add.
-
-**Mechanics:** one decision per question (never batch); `AskUserQuestion` for genuine forks, prose with inline candidates when narrating along a thread; after each answer record the decision, check contradictions, surface next question in dependency order, display `(Q: X answered, ~Y remaining)`. On "I don't know" decompose into sub-questions; on contradiction flag immediately and resolve before continuing.
-
 ---
 
 ## Standard Operating Procedure
 
-The brainstorm artifact accumulates in chat (not a file) until the CLOSE phase. Render the running artifact in the canonical step-based-planning format whenever the user asks "where are we" or at phase transitions.
+The Discover and Develop phases walk depth-first decision trees with backtracking (per CLAUDE.md "Creative drilling"): silently enumerate major branches at phase start, pick highest-priority and walk leaf questions to resolution, then backtrack to the most recent unresolved juncture. The brainstorm artifact accumulates in chat (not a file) until the CLOSE phase; render the running artifact in the canonical step-based-planning format whenever the user asks "where are we" or at phase transitions.
+
+**Question shape (every time):** one decision in one short sentence; 2–4 strong candidates from general knowledge / project context / dispatched-subagent findings; one-line recommendation with reasoning; invite pick / reject / add. One decision per question; `AskUserQuestion` for genuine forks, prose with inline candidates when narrating along a thread.
 
 ### Step 1: Confirm context and establish posture
 Verify any project context the user references is loaded (`CLAUDE.md`, target files, related artifacts). Posture: user owns judgment; you own process + option-generation; lead every decision with strong candidates and a recommendation.
 OUTPUT: posture confirmed; relevant context loaded.
 
 ### Step 2: Discover — capture intent (north star)
-Ask the user to articulate intent in their own words. Capture under `## Intent`. IF fuzzy after 1–2 light probes: surface that explicitly — fuzzy intent is signal. Intent stays user-owned; do not propose intent statements.
+Ask the user to articulate intent in their own words. Capture under `Intent`. Don't accept the first statement uncritically — do a quick polish pass and surface gaps up front. IF still fuzzy after 1–2 light probes: surface that explicitly — fuzzy intent is signal. Intent stays user-owned; do not propose intent statements.
 OUTPUT: intent statement captured.
 
 ### Step 3: Discover — dispatch researcher-cadre in background
-Once intent is captured, dispatch the `researcher-cadre` agent in background via Agent tool with `subagent_type: researcher-cadre`, `run_in_background: true`. Brief: intent verbatim + decision-space hint + 2–4 specific questions to surface candidates. Surface one line to the user: "Dispatched researcher in background — we'll fold its findings into the could space when it returns."
+Once intent is captured, dispatch the `researcher-cadre` agent in background via Agent tool with `subagent_type: researcher-cadre`, `run_in_background: true`. Brief: intent verbatim + decision-space hint + 2–4 specific questions to surface candidates. Surface one line to the user: "Dispatched researcher in background — we'll fold its findings in when it returns."
 OUTPUT: researcher dispatched; one-liner surfaced.
 
-### Step 4: Discover — walk could-tree depth-first
-Silently identify major branches (approach style, scope boundary, integration point, data shape). Pick highest-priority and start. Each question: one decision, 2–4 strong candidates, recommendation, pick/reject/add. Hold ≥3 alternatives in `## Could`. IF user pivots: follow (Aside-Killing); push parent onto open-tabs note. Show `(Q: X answered, ~Y remaining)` after each answer.
-OUTPUT: could-tree populated with ≥3 alternatives.
+### Step 4: Discover — walk the decision tree depth-first
+Silently identify major branches (approach style, scope boundary, integration point, data shape). Pick highest-priority and start. Each question: one decision, 2–4 strong candidates, recommendation, pick/reject/add. Hold ≥3 alternatives. IF the user pivots to an aside: follow it as a new branch (the depth-first stack handles return naturally). Show `(Q: X answered, ~Y remaining)` after each answer.
+OUTPUT: Discover space populated with ≥3 alternatives.
 
 ### Step 5: Discover — fold researcher findings
-When the researcher subagent returns, weave its brief into the live could-tree: new candidates → add to `## Could` with `(via researcher)` attribution; new branches → enumerate as open junctures; supporting/undermining evidence → annotate existing candidates with finding + confidence. Resume interrogation; the next question may be one the research prompted.
-IF could finishes before researcher returns: hold Define until research integrates.
-OUTPUT: could-tree with researcher findings folded in.
+When the researcher subagent returns, weave its brief into the live Discover space: new candidates → add with `(via researcher)` attribution; new branches → enumerate as open junctures; supporting/undermining evidence → annotate existing candidates with finding + confidence. Resume interrogation; the next question may be one the research prompted.
+IF Discover finishes before researcher returns: hold Define until research integrates.
+OUTPUT: Discover space with researcher findings folded in.
 
 ### Step 6: Define — frame the problem explicitly
-Ask the converge question: "what problem are we actually solving?" (not "what are we building"). Capture under `## Define`. Surface assumptions made during Discover; flag any that are load-bearing. IF framing reveals Discover missed a major branch: loop back to Step 4. ELSE: advance.
+Ask the converge question: "what problem are we actually solving?" (not "what are we building"). Capture under `Define`. Surface assumptions made during Discover; flag any that are load-bearing. IF framing reveals Discover missed a major branch: loop back to Step 4. ELSE: advance.
 OUTPUT: framing statement + load-bearing assumptions.
 
-### Step 7: Develop — walk should-tree
+### Step 7: Develop — walk the solution-direction tree
 Surface candidates from Discover; ask which align best with the Define-d framing. Same depth-first interrogation pattern with strong candidates + recommendation per question. Set-Based discipline: alternatives moving away get DOWNGRADED (`parked: <reason>`), not deleted. Devil's advocate: steel-man parking-bound alternatives — "before we park: strongest case is [X]. Still park?"
-OUTPUT: should-tree narrowed to 2–4 viable paths; parked alternatives recorded with reasons.
+OUTPUT: Develop space narrowed to 2–4 viable paths; parked alternatives recorded with reasons.
 
 ### Step 8: Develop — dispatch staff-engineer-cadre (sequential)
-Once 2–4 viable paths emerge, dispatch the `staff-engineer-cadre` agent via Agent tool with `subagent_type: staff-engineer-cadre`. Brief: intent + surviving candidates + current direction + "which path optimizes against intent, what trade-offs across the four optimization layers?" Wait for return (sequential, NOT parallel — staff-engineer's findings are load-bearing for the will phase).
+Once 2–4 viable paths emerge, dispatch the `staff-engineer-cadre` agent via Agent tool with `subagent_type: staff-engineer-cadre`. Brief: intent + surviving candidates + current direction + "which path optimizes against intent, what trade-offs across the four optimization layers?" Wait for return (sequential, NOT parallel — staff-engineer's findings are load-bearing for Deliver-Direction).
 OUTPUT: staff-engineer optimization plan in hand.
 
-### Step 9: Deliver-Direction — commit (will), fold staff-engineer, resolve tensions
-Move to commitment: "what are we deciding to do?" Weave staff-engineer recommendations into the will draft. Findings confirming the user's narrowing → note as supporting evidence. Findings suggesting a different path → surface as Open Tensions; ask whether to revise. Resolve tensions explicitly — user has final say; staff-engineer's case on record. Last Responsible Moment check: "deciding now because we have to, or because pressured? If we deferred, what would we lose?"
-OUTPUT: chosen direction (will), open tensions resolved.
+### Step 9: Deliver-Direction — commit, fold staff-engineer, resolve tensions
+Move to commitment: "what are we deciding to do?" Weave staff-engineer recommendations into the commitment draft. Findings confirming the user's narrowing → note as supporting evidence. Findings suggesting a different path → surface as Open Tensions; ask whether to revise. Resolve tensions explicitly — user has final say; staff-engineer's case on record. Last Responsible Moment check: "deciding now because we have to, or because pressured? If we deferred, what would we lose?"
+OUTPUT: chosen direction; open tensions resolved.
 
 ### Step 10: Review — render direction summary
 Render the chosen-direction summary inline — concise: intent + chosen direction + rejected alternatives + open assumptions. This summary becomes the input for the three parallel reviewers.
@@ -144,57 +132,76 @@ In a single message, dispatch in parallel:
 - `staff-engineer-cadre` agent (second pass) — input: direction summary; brief: "fresh review on this chosen direction; what optimization concerns?"
 
 While subagents run: invoke the `brooks-review-cadre` skill (orchestrator-side, in-context) — produces orchestrator's own rewrite-reflection verdict.
-OUTPUT: three reviewer verdicts (one in-context skill output, two subagent return values).
+OUTPUT: three reviewer verdicts (one in-context skill output, two subagent return values), each with concerns in {Change, Justification, Outcome} structure.
 
-### Step 12: Review — synthesize verdicts, preserve dissent
-When both subagents return, synthesize three reviewers (brooks + premortem + staff-engineer) preserving dissent — DO NOT average. Each reviewer provides: trichotomous verdict (proceed / revise / revisit-earlier-phase) + confidence + top concerns + steelman + assumption ledger.
-IF any reviewer says `revisit-earlier-phase`: pause; surface the dissent to user as a question; offer to loop back to the relevant phase.
-ELIF all reviewers say `proceed` with high confidence: forward to Step 13.
-ELSE: surface concerns inline; ask user to pick proceed / revise / revisit.
-OUTPUT: synthesized review verdict with dissent surfaced.
+### Step 12: Review — weave reviewer concerns into per-item AUQs
+Process verdicts in two passes:
+
+**Pass 1 — verdict triage.** IF any reviewer's verdict is `revisit-earlier-phase`: pause; surface the dissenting reviewer + their reasoning to the user; ask whether to loop back to the named earlier phase before processing concerns. ELIF all reviewers are `proceed` with high confidence and no concerns: forward to Step 13. ELSE: collect every concern from every reviewer (each has Change / Justification / Outcome fields per the reviewer-output format) and proceed to Pass 2.
+
+**Pass 2 — per-concern AUQ.** Order concerns logically for implementation (assumption-load first, then framing fits, then optimization tweaks). For each concern, present a single AUQ in this format:
+
+```
+Reviewer: <brooks-review | premortem-reviewer | staff-engineer second-pass>
+Suggestion: <Change line from reviewer>
+Justification: <Justification line from reviewer>
+
+Confirm: <one sentence — what the orchestrator will change in the artifact / direction if accepted>
+Deny
+```
+
+User can also "type something else" to express a custom response. Track confirmed/denied state per concern. Apply confirmed changes to the in-chat brainstorm artifact before advancing to Step 13.
+OUTPUT: synthesized review with per-concern decisions; artifact updated.
 
 ### Step 13: Close — render artifact, signoff, persist
-Render the brainstorm artifact INLINE in the canonical step-based-planning format (per CLAUDE.md "Step-based planning format" — so the user doesn't have to open a file). Ask user to sign off in chat.
-ON signoff: persist artifact to `~/.claude/plans/<slug>.md`. Surface handoff line: "ready to plan — invoke /plan-cadre in plan mode; it takes this artifact as INPUT."
+Render the brainstorm artifact INLINE in the canonical step-based-planning format (per CLAUDE.md "Step-based planning format" and the Output Format below — so the user doesn't have to open a file). Ask the user to sign off in chat.
+ON signoff: persist the artifact to `~/.claude/plans/<slug>.md`. Surface handoff line: "ready to plan — invoke /plan-cadre in plan mode; it takes this artifact as INPUT."
 OUTPUT: `~/.claude/plans/<slug>.md` written; handoff surfaced.
 
 ---
 
 ## Output Format
 
-The persisted brainstorm artifact at `~/.claude/plans/<slug>.md` follows this shape (capturing the conversation's accumulated state):
+The persisted brainstorm artifact at `~/.claude/plans/<slug>.md` follows the canonical step-based-planning format from CLAUDE.md:
 
-```markdown
-# Brainstorm: <slug>
+```
+brainstorm-cadre: <slug>
+═══════════════════════════════════════
+Type: skill
+Mode: freeform conversation
+Scope: "<one-line scope statement — what we set out to figure out>"
 
-## Intent
-<user's intent statement, verbatim>
+INPUT: <user's original idea / problem statement, verbatim>
 
-## Discover (could)
-- Alternative A: <one-line description>
-- Alternative B: <one-line description> (via researcher)
-- Alternative C: <one-line description>
+DISCOVER
+  ▸ Intent: <user's articulated north star>
+  ▸ Alternatives: A — <description>; B — <description> (via researcher); C — <description>
+  ▸ Researcher fold-in: <one-line summary of key findings>
 
-## Define
-<framing statement — "the problem we're actually solving" + load-bearing assumptions>
+DEFINE
+  ▸ Problem framing: <what we're actually solving>
+  ▸ Load-bearing assumptions: <list>
 
-## Parked
-- Alternative B: <why parked, what would re-promote it>
+DEVELOP
+  ▸ Surviving alternatives: A, B (after narrowing)
+  ▸ Parked: C (reason: <why parked, what would re-promote it>)
+  ▸ Staff-engineer fold-in: <one-line summary of key recommendations>
 
-## Develop (should)
-<should-tree narrowing rationale + staff-engineer optimization fold-in>
+DELIVER-DIRECTION
+  ▸ Chosen direction: <commitment statement>
+  ▸ Open tensions resolved: <how each was settled>
 
-## Open Tensions
-<unresolved divergences between user preference and staff-engineer recommendation, if any>
+REVIEW
+  ▸ brooks-review verdict: <proceed | revise | revisit-earlier-phase> (<confidence>)
+  ▸ premortem verdict: <proceed | revise | revisit-earlier-phase> (<confidence>)
+  ▸ staff-engineer second-pass verdict: <proceed | revise | revisit-earlier-phase> (<confidence>)
+  ▸ Concerns confirmed: <count> — applied to artifact
+  ▸ Concerns denied: <count> — recorded with user's reasoning
 
-## Deliver-Direction (will)
-<commitment statement, weaving user judgment + staff-engineer recs>
+CLOSE
+  ▸ Direction summary: <final chosen direction, ready for plan-cadre input>
 
-## Review
-<three-reviewer ensemble synthesis: per-reviewer verdict (proceed / revise / revisit-earlier-phase) + confidence + concerns + dissent preserved>
-
-## Direction Summary
-<final chosen direction, ready for plan-cadre input — what are we doing, why, with what assumptions, what's deferred>
+OUTPUT: ~/.claude/plans/<slug>.md (this file)
 ```
 
 ---
@@ -211,29 +218,38 @@ The persisted brainstorm artifact at `~/.claude/plans/<slug>.md` follows this sh
 
 ### Example 2: Skipped Define beat vs explicit framing
 
-**BAD:** Discover surfaces A/B/C caching options. User: "A." → Orchestrator: "Great, let me think about should-tree for A."
-*Skipped Define — never asked "what's the actual problem we're solving with caching" (latency? cost? backend load?). Could options were all valid but unmoored from the problem.*
+**BAD:** Discover surfaces A/B/C caching options. User: "A." → Orchestrator: "Great, let me start narrowing in Develop."
+*Skipped Define — never asked "what's the actual problem we're solving with caching" (latency? cost? backend load?). Discover options were all valid but unmoored from the problem.*
 
-**GOOD:** Discover surfaces A/B/C. → "Before should-tree: zooming out, what's the actual problem? Three flavors: latency-on-reads, cost-per-call, backend-load-spikes. Which is the load-bearing one? That changes which Could option wins."
+**GOOD:** Discover surfaces A/B/C. → "Before Develop: zooming out, what's the actual problem? Three flavors: latency-on-reads, cost-per-call, backend-load-spikes. Which is the load-bearing one? That changes which Discover option wins."
 *Define is the explicit converge beat that catches misframing before solution-space exploration.*
 
-### Example 3: Averaged verdict vs preserved dissent
+### Example 3: Averaged verdict vs per-concern AUQ
 
-**BAD:** Three reviewers return: brooks says proceed (medium), staff-engineer says proceed (high), premortem says revise (high). → Orchestrator: "Reviewers say proceed with caveats. Ready to sign?"
-*Averaged. The premortem dissent — the strongest empirically-grounded reviewer at this stage — got dissolved.*
+**BAD:** Three reviewers return concerns. → Orchestrator: "Reviewers say proceed with caveats. Ready to sign?"
+*Concerns dissolved into a vague "with caveats" — user never sees individual reviewer dissent or makes a per-concern decision.*
 
-**GOOD:** Same setup. → Orchestrator: "Two reviewers say proceed; premortem says revise (high confidence). Premortem's concern: [specific failure narrative]. Three options: (1) absorb the concern as a known risk and proceed, (2) revise the direction to address it, (3) loop back to Define if the concern reveals a framing miss. I'd lean 2 because [reasoning]. Pick?"
-*Dissent surfaced as first-class signal. User decides with the minority report visible.*
+**GOOD:** Same setup. → Orchestrator processes each concern as its own AUQ:
+```
+Reviewer: premortem-reviewer
+Suggestion: Surface the solo-author scope assumption explicitly in the artifact.
+Justification: Pre-mortem narrative ranks "second-writer added → schema conflicts" as high-likelihood; the assumption is currently implicit.
+
+Confirm: Add a "Migration assumptions" line to the artifact's DEVELOP section naming solo-author scope.
+Deny
+```
+User picks Confirm. Orchestrator applies the change to the in-chat artifact and advances to the next concern.
+*Each concern visible; user decides per-item; dissent preserved by construction.*
 
 ---
 
 ## Decision Authority
 
-**Autonomous:** which decision-tree branch to walk; which strong candidates to surface; which recommendation to make and why; when to dispatch researcher (Discover) and staff-engineer (Develop + Review); review-phase trichotomous-verdict synthesis (preserve-dissent rules); when to invoke the brooks-review skill in-context.
+**Autonomous:** which decision-tree branch to walk; which strong candidates to surface; which recommendation to make and why; when to dispatch researcher (Discover) and staff-engineer (Develop + Review); when to invoke the brooks-review skill in-context; concern ordering for Step 12 AUQ pass.
 
-**Escalate:** user signals frustration or stuck → surface explicitly; conversation reveals original intent was wrong → back up to Discover; phase boundaries blur → name it; reviewer trio includes any "revisit-earlier-phase" verdict → pause and ask user; staff-engineer recommendation diverges from user preference → surface as Open Tensions, do not silently override.
+**Escalate:** user signals frustration or stuck → surface explicitly; conversation reveals original intent was wrong → back up to Discover; phase boundaries blur → name it; reviewer trio includes any `revisit-earlier-phase` verdict → pause and ask user before processing concerns; staff-engineer recommendation diverges from user preference → surface as Open Tensions, do not silently override.
 
-**Out of scope:** making the brainstorm judgment FOR the user (Could/Should/Will picks belong to user); advancing phases without user gate; filling content the user didn't articulate; architecting (use /plan-cadre after this skill).
+**Out of scope:** making the brainstorm judgment FOR the user (Discover / Define / Develop / Deliver-Direction picks belong to user); advancing phases without user gate; filling content the user didn't articulate; architecting (use /plan-cadre after this skill).
 
 **File Footprint** *(I/O contract)*:
 - **Reads:** `CLAUDE.md`, `.cadre/references/*` (as needed), `.cadre/agent-output/researcher/brainstorming-techniques-04-23.md` (selectively), `.claude/agents/researcher-cadre.md` (for dispatch brief), `.claude/agents/staff-engineer-cadre.md` (for dispatch brief), `.claude/agents/premortem-reviewer-cadre.md` (for dispatch brief), `.claude/skills/brooks-review-cadre/SKILL.md` (for in-context invocation)
@@ -241,11 +257,3 @@ The persisted brainstorm artifact at `~/.claude/plans/<slug>.md` follows this sh
 - **Subagent dispatches:** researcher-cadre (Discover, background), staff-engineer-cadre (end of Develop, sequential; Review, parallel), premortem-reviewer-cadre (Review, parallel)
 - **Skill invocations:** brooks-review-cadre (Review, orchestrator-side, in-context)
 - Anything outside this footprint is a bug.
-
----
-
-## Interaction Model
-
-**Receives:** user → idea, intent, decisions, narrowing rationales, commitments, signoff. Researcher subagent (Discover) → research brief. Staff-engineer subagent (Develop + Review) → optimization plan. Premortem-reviewer subagent (Review) → failure-mode brief.
-**Delivers:** user → strong-candidate questions with recommendations, captured-intent confirmations, devil's advocate steel-mans, phase checkpoints, status display, three-reviewer synthesis with dissent preserved. `~/.claude/plans/<slug>.md` → brainstorm artifact at signoff.
-**Coordination:** orchestrator-mediated dialogue with sequential phase progression and explicit user gates; researcher runs background-parallel with Discover; staff-engineer runs sequentially at end of Develop; reviewer trio runs parallel at end of Deliver-Direction. Loop back when Define or Review reveals brainstorm gaps.

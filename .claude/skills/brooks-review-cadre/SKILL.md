@@ -91,7 +91,7 @@ OUTPUT: reviewer verdict in chat for synthesis.
 
 ## Output Format
 
-The reviewer verdict surfaced in chat — same format as the other two reviewers (premortem + staff-engineer second pass) so brainstorm-cadre's synthesis has parallel inputs:
+The reviewer verdict surfaced in chat. Each concern uses a fixed three-line structure (one sentence per line) so brainstorm-cadre's synthesis can parse fields directly and present each concern to the user as a single AUQ:
 
 ```markdown
 ## Brooks Review Verdict
@@ -99,21 +99,21 @@ The reviewer verdict surfaced in chat — same format as the other two reviewers
 **Verdict:** <proceed | revise | revisit-earlier-phase>
 **Confidence:** <high | medium | low>
 
-### Top concerns
-1. <specific failure mode + the assumption it depends on>
-2. <specific failure mode + the assumption it depends on>
-3. <specific failure mode + the assumption it depends on>
+### Concerns
+1. **Change:** <one-sentence summary of what should be different>
+   **Justification:** <one-sentence reasoning>
+   **Outcome:** <one-sentence: what looks different in the artifact / direction if accepted>
+2. **Change:** ...
+   **Justification:** ...
+   **Outcome:** ...
 
 ### Steelman of alternative *(only if verdict ≠ proceed)*
-<strongest version of an alternative direction that the rewrite-test would aim at>
+<one-paragraph: strongest version of an alternative direction the rewrite-test would aim at>
 
 ### Assumption ledger
 - <top assumption 1 this verdict depends on>
 - <top assumption 2 this verdict depends on>
 - <top assumption 3 this verdict depends on>
-
-### Rewrite reflection (one paragraph)
-<knowing what we now know — would a fresh start produce a different shape, and if so, what's the load-bearing change?>
 ```
 
 ---
@@ -125,14 +125,42 @@ The reviewer verdict surfaced in chat — same format as the other two reviewers
 **BAD:** "Proceed (high). The chosen direction looks good and the staff-engineer findings support it."
 *Sycophantic. No specific concerns. No assumption ledger. The orchestrator agreeing with the orchestrator is not a review.*
 
-**GOOD:** "Proceed (medium). Top concern: this direction assumes user-managed schema migrations — if usage scales beyond solo, that assumption breaks and the design needs rework. Assumption ledger: solo-author scope, low schema-change frequency, no concurrent multi-writer. Rewrite reflection: knowing what we now know about the schema's central role, I'd surface the migration story explicitly in the artifact rather than leave it implicit."
+**GOOD:**
+```
+Verdict: proceed (medium)
+
+Concerns:
+1. Change: Surface the user-managed-schema-migration assumption explicitly in the artifact.
+   Justification: The chosen direction implicitly relies on solo-author scope; if usage scales, this becomes the load-bearing failure point.
+   Outcome: Artifact gains a "Migration assumptions" line that plan-cadre can carry forward.
+
+Assumption ledger:
+- solo-author scope
+- low schema-change frequency
+- no concurrent multi-writer
+```
 
 ### Example 2: Mode-drifted vs scoped concern
 
 **BAD:** "Revise. Concern: the score.ts script needs better error handling around file-not-found cases."
 *Mode drift — that's plan-cadre's territory. Brainstorm-direction reviews don't critique implementation specifics.*
 
-**GOOD:** "Revise. Concern: the chosen direction (single-writer pipeline) assumes the inbox shard format is forgiving; staff-engineer's pass surfaced four-rule audit complexity that suggests the format may be too lax. Steelman of alternative: a stricter shard schema with up-front validation would shift the audit into deterministic checks instead of LLM judgment. Rewrite reflection: knowing the audit complexity, I'd revise the direction to commit to a stricter schema."
+**GOOD:**
+```
+Verdict: revise (high)
+
+Concerns:
+1. Change: Commit to a stricter shard schema with up-front validation.
+   Justification: Staff-engineer's pass surfaced four-rule audit complexity rooted in the shard format being too lax.
+   Outcome: Audit moves from LLM judgment to deterministic checks; curator skill drops a review-gate step.
+
+Steelman of alternative:
+A schema-strict pipeline shifts validation responsibility to the script and frees the curator from audit work; trade-off is one-time migration cost on existing shards.
+
+Assumption ledger:
+- audit complexity is a real cost
+- scoring depends on frontmatter completeness
+```
 
 ---
 
