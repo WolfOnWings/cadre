@@ -1,11 +1,9 @@
 name: "Bun setup"
-description: "Checkout, setup Bun, restore cache, install with frozen lockfile."
+description: "Setup Bun, restore cache, install with frozen lockfile. Caller must checkout first."
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
-
     - uses: oven-sh/setup-bun@v2
       with:
         bun-version: latest

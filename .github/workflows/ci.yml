@@ -1,7 +1,7 @@
-# To add a check: (1) define a new job using `uses: ./.github/actions/bun-setup`
-# then `run: bun run check:<name>`. (2) add the job's name to `ci-complete`'s
-# `needs:`. That's it. The `workflow-lint` job (actionlint) catches typos in
-# `needs:` and other syntax mistakes before the workflow runs in anger.
+# To add a check: (1) define a new job that checks out and uses the bun-setup
+# composite, then `run: bun run check:<name>`. (2) add the job's name to
+# `ci-complete`'s `needs:`. The `workflow-lint` job catches `needs:` typos
+# and other YAML mistakes before the workflow runs in anger.
 
 name: CI
 
@@ -17,14 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: rhysd/actionlint@v1
-        with:
-          files: ".github/workflows/*.yml"
+      - name: Install + run actionlint
+        shell: bash
+        env:
+          ACTIONLINT_VERSION: 1.7.7
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) "${ACTIONLINT_VERSION}"
+          ./actionlint -color
 
   typecheck:
     name: typecheck
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/bun-setup
       - run: bun run check:typecheck
 
@@ -32,6 +37,7 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/bun-setup
       - run: bun run check:lint
 
@@ -39,6 +45,7 @@ jobs:
     name: dead-code
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/bun-setup
       - run: bun run check:dead-code
 
@@ -46,6 +53,7 @@ jobs:
     name: duplication
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/bun-setup
       - run: bun run check:duplication
 
@@ -53,6 +61,7 @@ jobs:
     name: comment-ratio
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/bun-setup
       - run: bun run check:comment-ratio
 
@@ -60,6 +69,7 @@ jobs:
     name: todo-grep
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/bun-setup
       - run: bun run check:todos
 
@@ -67,6 +77,7 @@ jobs:
     name: loc-gate
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/bun-setup
       - run: bun run check:loc
 
@@ -74,6 +85,7 @@ jobs:
     name: test
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/bun-setup
       - name: Test-exists gate
         run: bun run check:test-exists

@@ -12,6 +12,7 @@ jobs:
     name: self-test
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/bun-setup
 
       - name: Assert loc-gate fails on fixture
