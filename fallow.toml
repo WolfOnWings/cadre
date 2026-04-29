@@ -1,6 +1,10 @@
 # fallow.toml - dead code analysis configuration
 # Cross-platform; complementary to knip (overlap exists).
 
+# Test files are entry points by definition (the test runner invokes them).
+# Without this, fallow flags the first *.test.ts as "unused files."
+ignore = ["**/*.test.ts"]
+
 [detect]
 unused_files = true
 unused_exports = true
