@@ -1,0 +1,29 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+
+  "entry": [
+    ".claude/hooks/**/*.ts",
+    ".claude/agents/**/*.ts",
+    ".claude/skills/**/*.ts",
+    "scripts/**/*.ts",
+    ".claude/agents/handoff-mx-cadre.parse.ts",
+    ".claude/agents/task-mx-cadre.score.ts"
+  ],
+
+  "project": [
+    ".claude/hooks/**/*.ts",
+    ".claude/agents/**/*.ts",
+    ".claude/skills/**/*.ts",
+    "scripts/**/*.ts"
+  ],
+
+  "ignore": [
+    "**/*.test.ts",
+    "node_modules/**",
+    ".cadre/**",
+    ".tsbuildinfo"
+  ],
+
+  "ignoreDependencies": [],
+  "ignoreBinaries": []
+}

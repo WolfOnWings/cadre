@@ -1,0 +1,72 @@
+# Self-test for the CI gate. Runs each check against an intentionally-bad
+# fixture (.cadre/test-fixtures/bad.ts) and asserts the EXPECTED FAILURE.
+# A check that no longer fires on the fixture is itself a regression.
+
+name: CI self-test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  self-test:
+    name: self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/bun-setup
+
+      - name: Assert loc-gate fails on fixture
+        shell: bash
+        run: |
+          # Temporarily un-exempt the fixture by running check-loc with the fixture
+          # in scope. We do this by copying the fixture out of its excluded dir.
+          cp .cadre/test-fixtures/bad.ts scripts/_bad-fixture.ts
+          if bun run scripts/check-loc.ts; then
+            rm scripts/_bad-fixture.ts
+            echo "expected loc-gate to fail on 320-line fixture"
+            exit 1
+          fi
+          rm scripts/_bad-fixture.ts
+
+      - name: Assert todo-grep fails on fixture
+        shell: bash
+        run: |
+          cp .cadre/test-fixtures/bad.ts scripts/_bad-fixture.ts
+          if bun run scripts/check-todos.ts; then
+            rm scripts/_bad-fixture.ts
+            echo "expected todo-grep to fail on TODO/FIXME/not-implemented patterns"
+            exit 1
+          fi
+          rm scripts/_bad-fixture.ts
+
+      - name: Assert oxlint fails on fixture
+        shell: bash
+        run: |
+          cp .cadre/test-fixtures/bad.ts scripts/_bad-fixture.ts
+          if bunx oxlint scripts/_bad-fixture.ts; then
+            rm scripts/_bad-fixture.ts
+            echo "expected oxlint to fail on any-type, magic numbers, max-depth, eqeqeq, no-empty"
+            exit 1
+          fi
+          rm scripts/_bad-fixture.ts
+
+      - name: Assert comment-ratio fails on fixture
+        shell: bash
+        run: |
+          cp .cadre/test-fixtures/bad.ts scripts/_bad-fixture.ts
+          if bun run scripts/check-comment-ratio.ts; then
+            rm scripts/_bad-fixture.ts
+            echo "expected comment-ratio to fail on <10% density fixture"
+            exit 1
+          fi
+          rm scripts/_bad-fixture.ts
+
+      - name: Assert test-exists fails (no test files in fixture state)
+        shell: bash
+        run: |
+          if bun run scripts/check-test-exists.ts; then
+            echo "expected test-exists to fail (zero *.test.ts files)"
+            exit 1
+          fi
+
+      - name: Summary
+        run: echo "all expected failures fired correctly"

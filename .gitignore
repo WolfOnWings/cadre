@@ -2,6 +2,14 @@
 *.local.md
 *.local.json
 
+# Bun
+node_modules/
+.tsbuildinfo
+
+# Tool caches
+.fallow/
+coverage/
+
 # handoff-mx-cadre operational state (events stream + per-hook debug; all transient)
 .cadre/logs/handoff-mx/
 

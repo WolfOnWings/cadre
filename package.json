@@ -1,0 +1,23 @@
+{
+  "name": "cadre",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:typecheck": "tsc --noEmit",
+    "check:lint": "oxlint .",
+    "check:dead-code": "knip",
+    "check:duplication": "fallow check --fail-on-issues",
+    "check:comment-ratio": "bun run scripts/check-comment-ratio.ts",
+    "check:todos": "bun run scripts/check-todos.ts",
+    "check:loc": "bun run scripts/check-loc.ts",
+    "check:test-exists": "bun run scripts/check-test-exists.ts",
+    "check:all": "bun run scripts/check-all.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.13",
+    "fallow": "^0.1.0",
+    "knip": "^5.0.0",
+    "oxlint": "^1.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "eslint/no-empty": "error",
+    "eslint/no-magic-numbers": ["warn", { "ignore": [-1, 0, 1, 2, 10, 100, 1000] }],
+    "eslint/require-await": "error",
+    "eslint/prefer-const": "error",
+    "eslint/eqeqeq": "error",
+    "eslint/max-depth": ["warn", 4],
+    "eslint/no-nested-ternary": "error"
+  },
+
+  "ignorePatterns": [
+    "node_modules/",
+    ".cadre/agent-output/",
+    ".cadre/research/",
+    ".cadre/handoffs/",
+    ".cadre/drafts/",
+    ".cadre/test-fixtures/",
+    ".tsbuildinfo"
+  ]
+}

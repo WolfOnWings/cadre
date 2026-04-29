@@ -464,9 +464,15 @@ function atomicWrite(path: string, content: string): void {
       } catch (e) {
         // Cleanup on failure: try to restore .bak if it exists.
         if (existsSync(bak) && !existsSync(path)) {
-          try { renameSync(bak, path); } catch {}
+          try { renameSync(bak, path); } catch {
+            // Restore is best-effort; original error wins.
+          }
         }
-        if (existsSync(tmp)) { try { unlinkSync(tmp); } catch {} }
+        if (existsSync(tmp)) {
+          try { unlinkSync(tmp); } catch {
+            // Tmp cleanup is best-effort; original error wins.
+          }
+        }
         throw e;
       }
     } else {
@@ -638,7 +644,9 @@ atomicWrite(TODOS_PATH, fullMd);
 let consumedCount = 0;
 for (const e of shardEntries) {
   if (e.shardPath && existsSync(e.shardPath)) {
-    try { unlinkSync(e.shardPath); consumedCount++; } catch {}
+    try { unlinkSync(e.shardPath); consumedCount++; } catch {
+      // Shard cleanup is best-effort; integration result still valid.
+    }
   }
 }
 

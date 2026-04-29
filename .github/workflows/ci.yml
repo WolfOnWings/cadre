@@ -1,0 +1,116 @@
+# To add a check: (1) define a new job using `uses: ./.github/actions/bun-setup`
+# then `run: bun run check:<name>`. (2) add the job's name to `ci-complete`'s
+# `needs:`. That's it. The `workflow-lint` job (actionlint) catches typos in
+# `needs:` and other syntax mistakes before the workflow runs in anger.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  workflow-lint:
+    name: workflow-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rhysd/actionlint@v1
+        with:
+          files: ".github/workflows/*.yml"
+
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/bun-setup
+      - run: bun run check:typecheck
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/bun-setup
+      - run: bun run check:lint
+
+  dead-code:
+    name: dead-code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/bun-setup
+      - run: bun run check:dead-code
+
+  duplication:
+    name: duplication
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/bun-setup
+      - run: bun run check:duplication
+
+  comment-ratio:
+    name: comment-ratio
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/bun-setup
+      - run: bun run check:comment-ratio
+
+  todo-grep:
+    name: todo-grep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/bun-setup
+      - run: bun run check:todos
+
+  loc-gate:
+    name: loc-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/bun-setup
+      - run: bun run check:loc
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/bun-setup
+      - name: Test-exists gate
+        run: bun run check:test-exists
+      - name: Run tests with coverage
+        if: success()
+        run: bun test --coverage
+      - name: Upload coverage artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          if-no-files-found: ignore
+
+  ci-complete:
+    name: ci-complete
+    needs:
+      - workflow-lint
+      - typecheck
+      - lint
+      - dead-code
+      - duplication
+      - comment-ratio
+      - todo-grep
+      - loc-gate
+      - test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify all upstream jobs passed
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "CI failure: one or more upstream jobs failed"
+            exit 1
+          fi
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "CI cancelled"
+            exit 1
+          fi
+          echo "CI complete"
