@@ -1,0 +1,16 @@
+# fallow.toml - dead code analysis configuration
+# Cross-platform; complementary to knip (overlap exists).
+
+# Test files are entry points by definition (the test runner invokes them).
+# Without this, fallow flags the first *.test.ts as "unused files."
+ignore = ["**/*.test.ts"]
+
+[detect]
+unused_files = true
+unused_exports = true
+unused_dependencies = true
+unused_dev_dependencies = true
+unused_types = true
+# `bun` is a Bun runtime built-in (resolves via @types/bun); not an npm package.
+# Disabling the unlisted-deps check avoids a permanent false positive.
+unlisted_dependencies = false

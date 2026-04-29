@@ -107,7 +107,9 @@ try {
   // of this session. Drop it here.
   try {
     if (existsSync(FLAG_FILE)) unlinkSync(FLAG_FILE);
-  } catch {}
+  } catch {
+    // Stale-flag cleanup is best-effort; non-fatal if unlink fails.
+  }
 
   console.log(
     JSON.stringify({
@@ -122,7 +124,9 @@ try {
   try {
     ensureDir(HOOK_LOG);
     appendFileSync(HOOK_LOG, `${ts} ERROR ${(err as Error)?.message ?? err}\n`);
-  } catch {}
+  } catch {
+    // Hook-log write is best-effort; never gate the harness on operational logging.
+  }
   console.log(
     JSON.stringify({
       hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: "" },

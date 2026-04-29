@@ -24,7 +24,7 @@ const SKIP_TOOLS = new Set(["Read", "Glob", "Grep"]);
 const NARRATIVE_TOOLS = new Set(["TodoWrite", "Skill", "Task", "Agent", "AskUserQuestion"]);
 
 function trunc(s: unknown, n: number): string {
-  if (s == null) return "";
+  if (s === null || s === undefined) return "";
   const str = typeof s === "string" ? s : JSON.stringify(s);
   return str.length > n ? str.slice(0, n) + "…[truncated]" : str;
 }
@@ -34,7 +34,7 @@ function trunc(s: unknown, n: number): string {
 // Replaces the previous serialize-then-truncate-blob approach which stripped
 // load-bearing fields when the input was long.
 function compactInput(tool: string | null, input: unknown): unknown {
-  if (input == null) return null;
+  if (input === null || input === undefined) return null;
   const i = input as Record<string, unknown>;
   switch (tool) {
     case "Read":

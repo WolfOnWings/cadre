@@ -52,13 +52,17 @@ try {
   // not state to recover from on every subsequent prompt.
   try {
     unlinkSync(FLAG_FILE);
-  } catch {}
+  } catch {
+    // Cleanup is best-effort; flag deletion failure is non-fatal.
+  }
 
   if (!handoffContent.trim()) {
     try {
       ensureDir(HOOK_LOG);
       appendFileSync(HOOK_LOG, `${ts} WARN flag set but handoff.md unreadable or empty\n`);
-    } catch {}
+    } catch {
+      // Hook-log write is best-effort; never gate the harness on operational logging.
+    }
     console.log("{}");
     process.exit(0);
   }
@@ -80,7 +84,9 @@ try {
   try {
     ensureDir(HOOK_LOG);
     appendFileSync(HOOK_LOG, `${ts} ERROR ${(err as Error)?.message ?? err}\n`);
-  } catch {}
+  } catch {
+    // Hook-log write is best-effort; never gate the harness on operational logging.
+  }
   console.log("{}");
   process.exit(0);
 }
